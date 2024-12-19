@@ -1,3 +1,4 @@
+/* Таблица */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -11,4 +12,27 @@ th, td {
 
 thead th {
     background-color: #f0f0f0;
+}
+
+/* Заголовки */
+h1 {
+    text-align: center;
+}
+
+/* Кнопки */
+.button_container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px;
+}
+
+.pp_button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
 }

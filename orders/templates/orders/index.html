@@ -7,12 +7,15 @@
 {% endblock %}
 
 {% block page_header %}
-    <h1>Регистрация приказов ФГКОУ «Объединенный Санкт-Петербургский кадетский корпус Следственного комитета Российской Федерации»</h1>
+    <h1>Регистрация приказов <br>ФГКОУ «Объединенный Санкт-Петербургский кадетский корпус <br>Следственного комитета Российской Федерации»</h1>
 {% endblock %}
 
-{% block page_content %}
+{% block content %}
+    <hr>
+    {% include 'orders/includes/inc__filter.html' %}
     <table>
         <thead>
+            <tr>
                 <th>Номер документа</th>
                 <th>Дата издания</th>
                 <th>Название документа</th>
@@ -25,19 +28,19 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Заполняйте строки данными -->
+        {% for order in orders %}
             <tr>
-                <td>1234</td>
-                <td>01.01.2023</td>
-                <td>Пример названия документа</td>
-                <td>Иванов Иван Иванович</td>
-                <td>Петров Петр Петрович</td>
-                <td>Сидоров Сидор Сидорович</td>
-                <td>Федоров Федор Федорович</td>
-                <td>ГБ-0001</td>
-                <td>Примеры примечаний</td>
+                <td>{{ order.document_number }}</td>
+                <td>{{ order.issue_date }}</td>
+                <td>{{ order.document_title }}</td>
+                <td>{{ order.signed_by }}</td>
+                <td>{{ order.responsible_executor }}</td>
+                <td>{{ order.transferred_to_execution }}</td>
+                <td>{{ order.transferred_for_storage }}</td>
+                <td>{{ order.heraldic_blank_number }}</td>
+                <td>{{ order.note }}</td>
             </tr>
-            <!-- Добавляйте новые строки для каждого нового документа -->
+        {% endfor %}
         </tbody>
     </table>
 {% endblock %}

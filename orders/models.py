@@ -13,8 +13,8 @@ class Order(models.Model):
     note = models.TextField(verbose_name='Примечание', blank=True)
 
     class Meta:
-        verbose_name = 'Заказ'
-        verbose_name_plural = 'Заказы'
+        verbose_name = 'Приказ'
+        verbose_name_plural = 'Приказы'
 
     def __str__(self):
         return f'{self.number}. {self.document_number}'

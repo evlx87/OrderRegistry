@@ -2,6 +2,7 @@ import io
 from datetime import datetime
 
 from django.contrib import messages
+from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views import View
@@ -18,10 +19,23 @@ class IndexView(ListView):
     model = Order
     template_name = 'orders/index.html'
     context_object_name = 'orders'
+    # paginate_by = 10  # Устанавливаем пагинацию по 10 записей на странице
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.GET.get("search")
+        filter_doc_num = self.request.GET.get("filter_doc_num")
+        if search:
+            queryset = queryset.filter(Q(document_number__icontains=search) | Q(document_title__icontains=search))
+        if filter_doc_num:
+            queryset = queryset.filter(document_number=filter_doc_num)
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'Приказы'
+        context["search"] = self.request.GET.get("search", "")
+        context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")
         return context
 
 

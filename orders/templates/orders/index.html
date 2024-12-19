@@ -1,14 +1,18 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Таблица документов</title>
-</head>
-<body>
+{% extends 'orders/base.html' %}
+
+{% block title %}
+<title>
+    {{ page_title|title }}
+</title>
+{% endblock %}
+
+{% block page_header %}
+    <h1>Регистрация приказов ФГКОУ «Объединенный Санкт-Петербургский кадетский корпус Следственного комитета Российской Федерации»</h1>
+{% endblock %}
+
+{% block page_content %}
     <table>
         <thead>
-            <tr>
-                <th>№ п/п</th>
                 <th>Номер документа</th>
                 <th>Дата издания</th>
                 <th>Название документа</th>
@@ -23,7 +27,6 @@
         <tbody>
             <!-- Заполняйте строки данными -->
             <tr>
-                <td>1</td>
                 <td>1234</td>
                 <td>01.01.2023</td>
                 <td>Пример названия документа</td>
@@ -37,5 +40,4 @@
             <!-- Добавляйте новые строки для каждого нового документа -->
         </tbody>
     </table>
-</body>
-</html>
+{% endblock %}

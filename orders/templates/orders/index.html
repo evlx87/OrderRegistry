@@ -35,7 +35,7 @@
         {% for order in orders %}
             <tr>
                 <td>{{ order.document_number }}</td>
-                <td>{{ order.issue_date }}</td>
+                <td>{{ order.issue_date|date:"d.m.Y" }}</td>
                 <td>{{ order.document_title }}</td>
                 <td>{{ order.signed_by }}</td>
                 <td>{{ order.responsible_executor }}</td>

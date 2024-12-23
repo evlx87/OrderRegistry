@@ -1,0 +1,17 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}
+<title>Редактирование приказа</title>
+{% endblock %}
+
+{% block content %}
+    <h1>Редактирование приказа</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+    </form>
+    <p>
+        <input type="submit" value="Сохранить изменения"/>
+    </p>
+    <a href="{% url 'orders:index' %}">Вернуться на главную страницу</a>
+{% endblock %}

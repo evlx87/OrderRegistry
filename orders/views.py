@@ -3,10 +3,11 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 
@@ -49,6 +50,50 @@ class AddOrderView(CreateView):
         response = super().form_valid(form)
         messages.success(self.request, 'Приказ успешно добавлен!')
         return response
+
+
+class EditOrderView(UpdateView):
+    model = Order
+    template_name = 'orders/edit_order.html'
+    form_class = OrderForm
+    success_url = reverse_lazy('orders:index')
+
+    def get_object(self, queryset=None, *args, **kwargs):
+        obj = super().get_object(queryset, *args, **kwargs)
+        if not obj:
+            raise Http404('Object does not exist.')
+        return obj
+
+    def form_invalid(self, form):
+        response = super().form_invalid(form)
+        messages.error(self.request, 'Произошла ошибка при обработке формы. Попробуйте еще раз.')
+        return response
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Приказ успешно обновлён!')
+        return response
+
+
+class DeleteOrderView(DeleteView):
+    model = Order
+    template_name = 'orders/delete_order.html'
+    success_url = reverse_lazy('orders:index')
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object_or_404(*args, **kwargs)
+        if obj:
+            obj.delete()
+            messages.success(self.request, 'Приказ удален.')
+        else:
+            messages.error(self.request, 'Приказ не найден.')
+        return redirect(self.success_url)
+
+    def get_object_or_404(self, queryset, *args, **kwargs):
+        try:
+            return self.get_object(queryset, *args, **kwargs)
+        except Http404:
+            raise Http404('Object does not exist.')
 
 
 class ExportToExcelView(View):

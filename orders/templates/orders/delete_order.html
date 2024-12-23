@@ -1,0 +1,16 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}
+<title>Удаление приказа</title>
+{% endblock %}
+
+{% block content %}
+    <h1>Удаление приказа</h1>
+    <p>Вы уверены, что хотите удалить приказ?</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="confirm_delete" value="yes">
+        <input type="submit" value="Да, удалить приказ из реестра">
+    </form>
+    <a href="{% url 'orders:index' %}">Нет, вернуться на главную страницу</a>
+{% endblock %}

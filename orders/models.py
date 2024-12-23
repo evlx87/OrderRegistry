@@ -11,10 +11,11 @@ class Order(models.Model):
     transferred_for_storage = models.CharField(max_length=150, verbose_name='Кому передано на хранение')
     heraldic_blank_number = models.CharField(max_length=20, verbose_name='Номер гербового бланка', blank=True)
     note = models.TextField(verbose_name='Примечание', blank=True)
+    is_active = models.BooleanField(default=True, verbose_name='Действующий')
 
     class Meta:
         verbose_name = 'Приказ'
         verbose_name_plural = 'Приказы'
 
     def __str__(self):
-        return f'{self.number}. {self.document_number}'
+        return f'{self.document_number}'

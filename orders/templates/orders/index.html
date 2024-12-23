@@ -1,5 +1,5 @@
 {% extends 'orders/base.html' %}
-
+{% load static %}
 {% block title %}
 <title>
     {{ page_title|title }}
@@ -28,6 +28,7 @@
                 <th>Кому передано на хранение</th>
                 <th>Номер гербового бланка</th>
                 <th>Примечание</th>
+                <th>Статус</th>
             </tr>
         </thead>
         <tbody>
@@ -42,6 +43,13 @@
                 <td>{{ order.transferred_for_storage }}</td>
                 <td>{{ order.heraldic_blank_number }}</td>
                 <td>{{ order.note }}</td>
+                <td>
+                    {% if order.is_active %}
+                        <img src="{% static 'img/img_true.png' %}">
+                    {% else %}
+                        <img src="{% static 'img/img_false.png' %}">
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
         </tbody>

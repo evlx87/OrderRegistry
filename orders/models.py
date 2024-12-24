@@ -26,27 +26,27 @@ def order_scan_upload_to(instance, filename):
 
 class Order(models.Model):
     document_number = models.CharField(
-        max_length=50,
+        max_length=10,
         verbose_name='Номер документа',
         db_index=True)
     issue_date = models.DateField(
         verbose_name='Дата издания')
     document_title = models.CharField(
-        max_length=255,
+        max_length=800,
         verbose_name='Название документа',
         db_index=True)
     signed_by = models.CharField(
-        max_length=150,
+        max_length=255,
         verbose_name='Кем подписан документ')
     responsible_executor = models.CharField(
-        max_length=150,
+        max_length=255,
         verbose_name='Ответственный исполнитель')
     transferred_to_execution = models.CharField(
-        max_length=150,
+        max_length=255,
         verbose_name='Кому передан (ответственный за исполнение приказа)',
         blank=True)
     transferred_for_storage = models.CharField(
-        max_length=150,
+        max_length=255,
         verbose_name='Кому передано на хранение',
         blank=True)
     heraldic_blank_number = models.CharField(

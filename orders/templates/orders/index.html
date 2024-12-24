@@ -29,7 +29,9 @@
                 <th>Номер гербового бланка</th>
                 <th>Примечание</th>
                 <th>Статус</th>
+                {% if user.is_authenticated %}
                 <th>Редактировать</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -51,10 +53,12 @@
                         <img src="{% static 'img/img_false.png' %}">
                     {% endif %}
                 </td>
+                {% if user.is_authenticated %}
                 <td>
                     <a href="{% url 'orders:edit_order' pk=order.pk %}"><img src="{% static 'img/edit_order.png' %}"></a>
                     <a href="{% url 'orders:delete_order' pk=order.pk %}"><img src="{% static 'img/delete_order.png' %}"></a>
                 </td>
+                {% endif %}
             </tr>
         {% endfor %}
         </tbody>

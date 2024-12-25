@@ -24,19 +24,24 @@ class IndexView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        search = self.request.GET.get("search")
-        filter_doc_num = self.request.GET.get("filter_doc_num")
+        search = self.request.GET.get("search")  # Поле общего поиска
+        filter_doc_num = self.request.GET.get("filter_doc_num")  # Поле для поиска по номеру документа
+
+        # Фильтруем по полю document_title, если есть общий поиск
         if search:
-            queryset = queryset.filter(Q(document_number__icontains=search) | Q(document_title__icontains=search))
+            queryset = queryset.filter(document_title__icontains=search)
+
+        # Фильтруем по точному номеру документа, если введен номер документа
         if filter_doc_num:
-            queryset = queryset.filter(document_number=filter_doc_num)
+            queryset = queryset.filter(document_number__exact=filter_doc_num)
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'Приказы'
-        context["search"] = self.request.GET.get("search", "")
-        context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")
+        context["search"] = self.request.GET.get("search", "")  # Значение для поля общего поиска
+        context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")  # Значение для поля поиска по номеру документа
         return context
 
 

@@ -1,6 +1,9 @@
 <div class="filter_container">
     <form action="" method="GET">
-        <input class="filter_input" type="text" name="search" value="{{ search }}" placeholder="Поиск по номеру документа или названию...">
+        <!-- Поле для общего поиска -->
+        <input class="filter_input" type="text" name="search" value="{{ search }}" placeholder="Введите название документа...">
+        <!-- Поле для поиска по конкретному номеру документа -->
+        <input class="filter_input" type="text" name="filter_doc_num" value="{{ filter_doc_num }}" placeholder="Введите точный номер документа...">
         <button type="submit" class="pp_button">Найти</button>
     </form>
 </div>

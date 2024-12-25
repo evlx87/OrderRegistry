@@ -37,7 +37,13 @@
         <tbody>
         {% for order in orders %}
             <tr>
-                <td>{{ order.document_number }}</td>
+                <td>
+                    {% if order.scan %}
+                        <a href="{{ order.scan.url }}" target="_blank">{{ order.document_number }}</a>
+                    {% else %}
+                        {{ order.document_number }}
+                    {% endif %}
+                </td>
                 <td>{{ order.issue_date|date:"d.m.Y" }}</td>
                 <td>{{ order.document_title }}</td>
                 <td>{{ order.signed_by }}</td>

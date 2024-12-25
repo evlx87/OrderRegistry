@@ -1,0 +1,15 @@
+<div class="filter_container">
+    <form action="" method="GET">
+        <input class="filter_input" type="text" name="search" value="{{ search }}" placeholder="Введите название документа...">
+        <input class="filter_input" type="text" name="filter_doc_num" value="{{ filter_doc_num }}" placeholder="Введите точный номер документа...">
+         <!-- Поле для выбора года -->
+        <label for="filter_year">Выбрать год:</label>
+        <select name="filter_year">
+            <option value="">--- Выберите год ---</option>
+            {% for year in years %}
+                <option value="{{ year.0 }}" {% if year.0 == selected_year %}selected{% endif %}>{{ year.0 }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="pp_button">Найти</button>
+    </form>
+</div>

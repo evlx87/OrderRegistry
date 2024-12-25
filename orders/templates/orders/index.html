@@ -1,0 +1,72 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+{% block title %}
+<title>
+    {{ page_title|title }}
+</title>
+{% endblock %}
+
+{% block page_header %}
+    <h1>РЕЕСТР ПРИКАЗОВ <br>ФГКОУ «Объединенный Санкт-Петербургский кадетский корпус <br>Следственного комитета Российской Федерации»</h1>
+{% endblock %}
+
+{% block content %}
+    <hr>
+    {% include 'orders/includes/inc__main_menu.html' %}
+    <hr>
+    {% include 'orders/includes/inc__filter.html' %}
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>Номер документа</th>
+                <th>Дата издания</th>
+                <th>Название документа</th>
+                <th>Кем подписан документ</th>
+                <th>Ответственный исполнитель</th>
+                <th>Кому передан (ответственный за исполнение приказа)</th>
+                <th>Кому передано на хранение</th>
+                <th>Номер гербового бланка</th>
+                <th>Примечание</th>
+                <th>Статус</th>
+                {% if user.is_authenticated %}
+                <th>Редактировать</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>
+                    {% if order.scan %}
+                        <a href="{{ order.scan.url }}" target="_blank">{{ order.document_number }}</a>
+                    {% else %}
+                        {{ order.document_number }}
+                    {% endif %}
+                </td>
+                <td>{{ order.issue_date|date:"d.m.Y" }}</td>
+                <td>{{ order.document_title }}</td>
+                <td>{{ order.signed_by }}</td>
+                <td>{{ order.responsible_executor }}</td>
+                <td>{{ order.transferred_to_execution }}</td>
+                <td>{{ order.transferred_for_storage }}</td>
+                <td>{{ order.heraldic_blank_number }}</td>
+                <td>{{ order.note }}</td>
+                <td>
+                    {% if order.is_active %}
+                        <img src="{% static 'img/img_true.png' %}">
+                    {% else %}
+                        <img src="{% static 'img/img_false.png' %}">
+                    {% endif %}
+                </td>
+                {% if user.is_authenticated %}
+                <td>
+                    <a href="{% url 'orders:edit_order' pk=order.pk %}"><img src="{% static 'img/edit_order.png' %}"></a>
+                    <a href="{% url 'orders:delete_order' pk=order.pk %}"><img src="{% static 'img/delete_order.png' %}"></a>
+                </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

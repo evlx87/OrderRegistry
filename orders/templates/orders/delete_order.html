@@ -1,0 +1,33 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}
+<title>Удаление приказа</title>
+{% endblock %}
+
+{% block content %}
+    <h1>Удаление приказа</h1>
+    <p class="cntr">Вы действительно хотите удалить приказ?</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+            <input type="hidden" name="confirm_delete" value="yes">
+            <div class="button_container">
+                <button class="add_form pp_button" type="submit">Да, удалить приказ из реестра</button>
+                <button class="add_form pp_button" id="buttonId">Нет, вернуться на главную страницу</button>
+            </div>
+</form>
+
+
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var button = document.querySelector('#buttonId');
+
+            button.addEventListener('click', function() {
+                window.location.href = "{% url 'orders:index' %}";
+            });
+        });
+    </script>
+{% endblock %}

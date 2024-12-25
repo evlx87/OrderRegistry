@@ -1,0 +1,110 @@
+/* Таблица */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+thead th {
+    background-color: #f0f0f0;
+}
+
+/* Заголовки */
+h1 {
+    text-align: center;
+}
+
+/* Кнопки */
+.cntr {
+    text-align: center;
+}
+.button_container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px;
+}
+
+.pp_button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+/* Фильтр */
+.filter_container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.filter_input {
+    width: 400px;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+/* Добавление и редактирование приказаов */
+.add_form {
+    width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.add_form form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Делит форму на две колонки */
+    grid-gap: 10px;
+    /* Расстояние между элементами */
+    margin-top: 10px;
+}
+
+.add_form label {
+    grid-column: span 1;
+    /* Занимает обе колонки */
+}
+
+.add_form input,
+.add_form select {
+    width: 100%;
+    /* Занимает всю ширину ячейки */
+    padding: 5px;
+    box-sizing: border-box;
+    /* Размер с учетом padding */
+}
+.add_form .btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.add_form button {
+    margin: 0 10px;
+    color: white;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: brown;
+    color: white;
+}
+
+/* Авторизация */
+.auth_box_center {
+    justify-content: center;
+    text-align: center;
+    padding-top: 20px;
+    margin: auto;
+    width: 440px;
+}

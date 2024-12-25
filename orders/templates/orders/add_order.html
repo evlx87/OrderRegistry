@@ -1,0 +1,27 @@
+{% extends 'orders/base.html' %}
+
+{% block content %}
+<h1>Добавление приказа</h1>
+<div class="add_form">
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="button_container">
+        <button class="pp_button" type="submit">Сохранить</button>
+        <button class="pp_button" id="buttonId">Отмена</button>
+    </div>
+</form>
+</div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var button = document.querySelector('#buttonId');
+
+            button.addEventListener('click', function() {
+                window.location.href = "{% url 'orders:index' %}";
+            });
+        });
+    </script>
+{% endblock %}

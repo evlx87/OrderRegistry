@@ -1,7 +1,11 @@
 import json
+import os
+
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from orders.models import Order
 from django.utils import timezone
+from datetime import datetime
 
 
 class Command(BaseCommand):
@@ -10,8 +14,12 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # Открытие файла orders.json
         try:
-            with open('orders.json', 'r', encoding='utf-8') as file:
+            with open(os.path.join(settings.JSON_FILES_DIR, 'orders2024.json'), 'r', encoding='utf-8') as file:
                 orders_data = json.load(file)
+
+            # Список для пакетного сохранения заказов
+            orders_to_create = []
+            skipped_orders = []
 
             # Обработка данных из JSON и сохранение их в базу данных
             for order_data in orders_data:
@@ -22,13 +30,18 @@ class Command(BaseCommand):
                     # Проверка поля issue_date
                     issue_date_str = fields.get('issue_date', None)
                     if issue_date_str is None:
-                        self.stdout.write(self.style.WARNING(
-                            f'Skipped Order with document_number {fields.get("document_number", "")}: '
-                            f'issue_date is None'))
-                        continue
+                        skipped_orders.append(fields.get("document_number", ""))
+                        continue  # Пропустить, если issue_date None
 
                     # Преобразование issue_date в формат даты
-                    issue_date = timezone.datetime.strptime(issue_date_str, '%Y-%m-%d').date()
+                    try:
+                        issue_date = datetime.strptime(issue_date_str, '%Y-%m-%d').date()
+                    except ValueError:
+                        skipped_orders.append(fields.get("document_number", ""))
+                        self.stdout.write(self.style.WARNING(
+                            f'Skipped Order with document_number {fields.get("document_number", "")}: '
+                            f'issue_date is not in correct format (expected YYYY-MM-DD).'))
+                        continue
 
                     # Создание объекта Order
                     order = Order(
@@ -44,12 +57,22 @@ class Command(BaseCommand):
                         is_active=fields.get('is_active', True),
                     )
 
-                    # Сохранение объекта в базе данных
-                    order.save()
-                    self.stdout.write(self.style.SUCCESS(f'Order {order.document_number} saved successfully'))
+                    # Добавление заказов в список для пакетного сохранения
+                    orders_to_create.append(order)
 
                 except Exception as order_exception:
-                    self.stdout.write(self.style.ERROR(f'An error occurred while saving order: {order_exception}'))
+                    self.stdout.write(self.style.ERROR(f'An error occurred while processing order: {order_exception}'))
+
+            # Сохранение всех заказов в базе данных
+            if orders_to_create:
+                Order.objects.bulk_create(orders_to_create)
+                self.stdout.write(self.style.SUCCESS(f'Loaded {len(orders_to_create)} orders successfully'))
+
+            if skipped_orders:
+                self.stdout.write(self.style.WARNING(f'Skipped {len(skipped_orders)} orders due to missing or invalid data.'))
 
         except FileNotFoundError:
             self.stdout.write(self.style.ERROR('File orders.json not found'))
+        except json.JSONDecodeError:
+            self.stdout.write(self.style.ERROR('Error decoding JSON from orders.json'))
+

@@ -145,3 +145,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 LOGIN_REDIRECT_URL = 'orders:index'
+
+JSON_FILES_DIR = os.path.join(BASE_DIR, 'json')

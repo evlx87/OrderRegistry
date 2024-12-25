@@ -37,6 +37,9 @@ class IndexView(ListView):
             queryset = queryset.filter(document_number__exact=filter_doc_num)
         if filter_year:
             queryset = queryset.filter(issue_date__year=int(filter_year))
+
+        queryset = queryset.order_by('-issue_date')
+
         return queryset
 
     def get_context_data(self, **kwargs):

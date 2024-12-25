@@ -49,3 +49,59 @@ h1 {
     padding: 10px;
     box-sizing: border-box;
 }
+/* Добавление и редактирование приказаов */
+.add_form {
+    width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.add_form form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Делит форму на две колонки */
+    grid-gap: 10px;
+    /* Расстояние между элементами */
+    margin-top: 10px;
+}
+
+.add_form label {
+    grid-column: span 1;
+    /* Занимает обе колонки */
+}
+
+.add_form input,
+.add_form select {
+    width: 100%;
+    /* Занимает всю ширину ячейки */
+    padding: 5px;
+    box-sizing: border-box;
+    /* Размер с учетом padding */
+}
+.add_form .btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.add_form button {
+    margin: 0 10px;
+    color: brown;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: brown;
+    color: white;
+}
+
+/* Авторизация */
+.auth_box_center {
+    justify-content: center;
+    text-align: center;
+    padding-top: 20px;
+    margin: auto;
+    width: 440px;
+}

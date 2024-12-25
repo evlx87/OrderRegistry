@@ -6,11 +6,15 @@
 
 {% block content %}
     <h1>Удаление приказа</h1>
+<div class="add_form">
     <p>Вы уверены, что хотите удалить приказ?</p>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        <a class="pp_button">
         <input type="hidden" name="confirm_delete" value="yes">
         <input type="submit" value="Да, удалить приказ из реестра">
+            </a>
     </form>
-    <a href="{% url 'orders:index' %}">Нет, вернуться на главную страницу</a>
+    <a class="pp_button" href="{% url 'orders:index' %}">Нет, вернуться на главную страницу</a>
+</div>
 {% endblock %}

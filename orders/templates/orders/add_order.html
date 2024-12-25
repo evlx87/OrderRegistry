@@ -2,11 +2,12 @@
 
 {% block content %}
 <h1>Добавление приказа</h1>
-
+<div class="add_form">
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Сохранить</button>
 </form>
-
+    <a class="pp_button" href="{% url 'orders:index' %}">Вернуться на главную страницу</a>
+    </div>
 {% endblock %}

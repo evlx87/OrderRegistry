@@ -20,6 +20,9 @@ h1 {
 }
 
 /* Кнопки */
+.cntr {
+    text-align: center;
+}
 .button_container {
     display: flex;
     justify-content: center;
@@ -88,7 +91,7 @@ h1 {
 
 .add_form button {
     margin: 0 10px;
-    color: brown;
+    color: white;
     font-weight: bold;
 }
 

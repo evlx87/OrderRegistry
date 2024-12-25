@@ -30,7 +30,9 @@ class Order(models.Model):
         verbose_name='Номер документа',
         db_index=True)
     issue_date = models.DateField(
-        verbose_name='Дата издания')
+        verbose_name='Дата издания',
+        null=True,
+        blank=True)
     document_title = models.CharField(
         max_length=800,
         verbose_name='Название документа',

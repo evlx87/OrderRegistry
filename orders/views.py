@@ -2,8 +2,9 @@ import io
 import datetime
 
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Q
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
@@ -52,23 +53,53 @@ class IndexView(ListView):
         return context
 
 
-class AddOrderView(CreateView):
+# class AddOrderView(CreateView):
+#     model = Order
+#     form_class = OrderForm
+#     template_name = 'orders/add_order.html'
+#     success_url = reverse_lazy('orders:index')
+#
+#     def form_valid(self, form):
+#         response = super().form_valid(form)
+#         messages.success(self.request, 'Приказ успешно добавлен!')
+#         return response
+
+class AddOrderView(SuccessMessageMixin, CreateView):
     model = Order
     form_class = OrderForm
     template_name = 'orders/add_order.html'
     success_url = reverse_lazy('orders:index')
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Приказ успешно добавлен!')
-        return response
+    success_message = 'Приказ успешно добавлен!'
 
 
-class EditOrderView(UpdateView):
+# class EditOrderView(UpdateView):
+#     model = Order
+#     template_name = 'orders/edit_order.html'
+#     form_class = OrderForm
+#     success_url = reverse_lazy('orders:index')
+#
+#     def get_object(self, queryset=None, *args, **kwargs):
+#         obj = super().get_object(queryset, *args, **kwargs)
+#         if not obj:
+#             raise Http404('Object does not exist.')
+#         return obj
+#
+#     def form_invalid(self, form):
+#         response = super().form_invalid(form)
+#         messages.error(self.request, 'Произошла ошибка при обработке формы. Попробуйте еще раз.')
+#         return response
+#
+#     def form_valid(self, form):
+#         response = super().form_valid(form)
+#         messages.success(self.request, 'Приказ успешно обновлён!')
+#         return response
+
+class EditOrderView(SuccessMessageMixin, UpdateView):
     model = Order
     template_name = 'orders/edit_order.html'
     form_class = OrderForm
     success_url = reverse_lazy('orders:index')
+    success_message = 'Приказ успешно обновлён!'
 
     def get_object(self, queryset=None, *args, **kwargs):
         obj = super().get_object(queryset, *args, **kwargs)
@@ -77,14 +108,23 @@ class EditOrderView(UpdateView):
         return obj
 
     def form_invalid(self, form):
-        response = super().form_invalid(form)
-        messages.error(self.request, 'Произошла ошибка при обработке формы. Попробуйте еще раз.')
-        return response
+        for error in form.errors.values():
+            for message in error:
+                self.request._messages.add(message.level, message)
+        return super().form_invalid(form)
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, 'Приказ успешно обновлён!')
-        return response
+        # Получаем текущий объект приказа
+        order = self.object
+
+        # Если дата не указана, оставляем ту, которая была до этого
+        if not form.cleaned_data['issue_date']:
+            order.issue_date = order.issue_date
+
+        # Сохраняем изменения
+        order.save()
+
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class DeleteOrderView(DeleteView):

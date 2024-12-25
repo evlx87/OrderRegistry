@@ -1,5 +1,5 @@
 import io
-from datetime import datetime
+import datetime
 
 from django.contrib import messages
 from django.db.models import Q
@@ -20,28 +20,32 @@ class IndexView(ListView):
     model = Order
     template_name = 'orders/index.html'
     context_object_name = 'orders'
-    # paginate_by = 10  # Устанавливаем пагинацию по 10 записей на странице
+
+    def get_year_choices(self):
+        years = Order.objects.dates('issue_date', 'year', order='ASC')
+        return [(year.year, year.year) for year in years]
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        search = self.request.GET.get("search")  # Поле общего поиска
-        filter_doc_num = self.request.GET.get("filter_doc_num")  # Поле для поиска по номеру документа
+        search = self.request.GET.get("search")
+        filter_doc_num = self.request.GET.get("filter_doc_num")
+        filter_year = self.request.GET.get("filter_year")
 
-        # Фильтруем по полю document_title, если есть общий поиск
         if search:
             queryset = queryset.filter(document_title__icontains=search)
-
-        # Фильтруем по точному номеру документа, если введен номер документа
         if filter_doc_num:
             queryset = queryset.filter(document_number__exact=filter_doc_num)
-
+        if filter_year:
+            queryset = queryset.filter(issue_date__year=int(filter_year))
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'Приказы'
-        context["search"] = self.request.GET.get("search", "")  # Значение для поля общего поиска
-        context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")  # Значение для поля поиска по номеру документа
+        context["search"] = self.request.GET.get("search", "")
+        context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")
+        context["years"] = self.get_year_choices()
+        context["selected_year"] = self.request.GET.get("filter_year", datetime.date.today().year)
         return context
 
 

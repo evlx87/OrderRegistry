@@ -1,10 +1,14 @@
 {% extends 'orders/base.html' %}
 
 {% block content %}
-<h2>Вход</h2>
+<h1>Авторизация пользователя</h1>
+<div class="add_form">
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Войти">
+    <div class="button_container">
+        <button class="pp_button" type="submit">Войти</button>
+    </div>
 </form>
+</div>
 {% endblock %}

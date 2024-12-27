@@ -1,9 +1,8 @@
-import io
 import datetime
+import io
 
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Q
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -53,17 +52,6 @@ class IndexView(ListView):
         return context
 
 
-# class AddOrderView(CreateView):
-#     model = Order
-#     form_class = OrderForm
-#     template_name = 'orders/add_order.html'
-#     success_url = reverse_lazy('orders:index')
-#
-#     def form_valid(self, form):
-#         response = super().form_valid(form)
-#         messages.success(self.request, 'Приказ успешно добавлен!')
-#         return response
-
 class AddOrderView(SuccessMessageMixin, CreateView):
     model = Order
     form_class = OrderForm
@@ -71,28 +59,6 @@ class AddOrderView(SuccessMessageMixin, CreateView):
     success_url = reverse_lazy('orders:index')
     success_message = 'Приказ успешно добавлен!'
 
-
-# class EditOrderView(UpdateView):
-#     model = Order
-#     template_name = 'orders/edit_order.html'
-#     form_class = OrderForm
-#     success_url = reverse_lazy('orders:index')
-#
-#     def get_object(self, queryset=None, *args, **kwargs):
-#         obj = super().get_object(queryset, *args, **kwargs)
-#         if not obj:
-#             raise Http404('Object does not exist.')
-#         return obj
-#
-#     def form_invalid(self, form):
-#         response = super().form_invalid(form)
-#         messages.error(self.request, 'Произошла ошибка при обработке формы. Попробуйте еще раз.')
-#         return response
-#
-#     def form_valid(self, form):
-#         response = super().form_valid(form)
-#         messages.success(self.request, 'Приказ успешно обновлён!')
-#         return response
 
 class EditOrderView(SuccessMessageMixin, UpdateView):
     model = Order
@@ -203,5 +169,5 @@ class ExportToExcelView(View):
             content=output.getvalue(),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
-        response['Content-Disposition'] = f'attachment; filename="orders_{datetime.now().strftime("%Y-%m-%d")}.xlsx"'
+        response['Content-Disposition'] = f'attachment; filename="orders_{datetime.datetime.now().strftime("%Y-%m-%d")}.xlsx"'
         return response

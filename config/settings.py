@@ -22,10 +22,10 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-epgq3r%l2ef2@$zi&-)wgo(cy-=9a^#eb)et##fb9n5$x(zk2o'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -87,12 +87,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('DB_NAME'),  # Название БД
-        'USER': os.getenv('DB_USER'),  # Пользователь для подключения
-        'PASSWORD': os.getenv('DB_PASSWORD'),  # Пароль для этого пользователя
-        'HOST': os.getenv('DB_HOST'),  # Адрес, на котором развернут сервер БД
-        'PORT': os.getenv('DB_PORT'),  # Порт, на котором работает сервер БД
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 

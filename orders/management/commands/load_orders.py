@@ -1,56 +1,42 @@
-import openpyxl
+import os
+
+import pandas as pd
 from django.core.management.base import BaseCommand
-from django.db.models import CharField, TextField
+from django.db import transaction
 
 from orders.models import Order
 
 
 class Command(BaseCommand):
-    help = 'Загружает данные из файла Excel в модель Order, используя массовые операции.'
+    help = 'Загружает данные о приказах из Excel-файла'
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            'excel_file_path',
-            type=str,
-            help='Путь к файлу Excel для загрузки.')
+        parser.add_argument('path', type=str, help='Путь к Excel-файлу')
 
-    def handle(self, *args, **options):
-        excel_file_path = options['excel_file_path']
-        self.stdout.write(
-            self.style.NOTICE(
-                f'Начинаем загрузку данных из: {excel_file_path}'))
+    @transaction.atomic
+    def handle(self, *args, **kwargs):
+        excel_path = kwargs['path']
+        if not os.path.exists(excel_path):
+            self.stderr.write(
+                self.style.ERROR(
+                    f'Файл не найден: {excel_path}'))
+            return
 
+        # Чтение данных из Excel
         try:
-            workbook = openpyxl.load_workbook(excel_file_path)
-            sheet = workbook.active
-        except FileNotFoundError:
-            self.stdout.write(
-                self.style.ERROR(
-                    f'Ошибка: Файл не найден по пути {excel_file_path}'))
-            return
+            df = pd.read_excel(excel_path)
+            orders_data = df.to_dict('records')
         except Exception as e:
-            self.stdout.write(
+            self.stderr.write(
                 self.style.ERROR(
-                    f'Ошибка при чтении Excel-файла: {e}'))
+                    f'Ошибка при чтении Excel: {e}'))
             return
 
-        # 1. Получаем заголовки (первая строка)
-        headers = [cell.value for cell in sheet[1]]
-        data = []
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'Загружено {
+                    len(orders_data)} записей из файла.'))
 
-        # 2. Читаем данные из файла
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            if any(row):  # Пропускаем пустые строки
-                data.append(dict(zip(headers, row)))
-
-        if not data:
-            self.stdout.write(self.style.NOTICE(
-                'В файле нет данных для обработки.'))
-            return
-
-        # 3. Разделение данных на создание и обновление
-
-        # Получаем список document_number для всех записей в базе
         existing_document_numbers = set(
             Order.objects.values_list('document_number', flat=True)
         )
@@ -58,71 +44,73 @@ class Command(BaseCommand):
         orders_to_create = []
         orders_to_update = []
 
-        # Список полей, которые нужно обновить с помощью bulk_update
-        # Исключаем document_number, так как он используется для поиска
-        fields_to_update = [
-            'document_date', 'document_title', 'transferred_for_execution',
-            'transferred_to_execution', 'responsible_executor', 'recipient',
-            'heraldic_blank_number', 'is_active', 'scan',
-        ]
+        for item in orders_data:
+            # 1. Очистка и подготовка номера документа
+            document_number = str(item.get('document_number', '')).strip()
 
-        for item in data:
-            document_number = str(item.get('document_number')).strip()
+            if not document_number:
+                self.stderr.write(
+                    self.style.WARNING(
+                        f'Пропуск записи без номера документа: {item}'))
+                continue
 
-            # Подготовка словаря с данными для Order
+            # 2. Формирование словаря обновляемых/создаваемых полей
             defaults = {
-                'document_date': item.get('document_date'),
+                # Примечание: предполагается, что 'document_date' из Excel
+                # соответствует issue_date в модели
+                'issue_date': item.get('document_date'),
                 'document_title': item.get('document_title'),
-                'transferred_for_execution': item.get('transferred_for_execution'),
-                'transferred_to_execution': item.get('transferred_to_execution'),
+                'signed_by': item.get('signed_by'),
                 'responsible_executor': item.get('responsible_executor'),
-                'recipient': item.get('recipient'),
+                'transferred_to_execution': item.get('transferred_to_execution'),
+                'transferred_for_storage': item.get('transferred_for_storage'),
                 'heraldic_blank_number': item.get('heraldic_blank_number'),
-                # Устанавливаем is_active в True по умолчанию, если поле не
-                # указано
+                'note': item.get('note'),
                 'is_active': item.get('is_active', True),
                 'scan': item.get('scan'),
             }
 
-            # Очистка пустых значений None (чтобы поля blank=True корректно
-            # обрабатывались)
-            for key, value in defaults.items():
-                if value is None:
-                    defaults[key] = '' if isinstance(Order._meta.get_field(
-                        key), (CharField, TextField)) else None
+            # 3. Приведение значений None/NaN к пустым строкам для
+            # CharField/TextField
+            for key in defaults:
+                if isinstance(defaults[key], str):
+                    defaults[key] = defaults[key].strip()
+                # Только для полей, где в модели не разрешен null (для
+                # CharField/TextField)
+                if key != 'issue_date' and defaults[key] is None:
+                    defaults[key] = ''
 
+            # 4. Сортировка по созданию или обновлению
             if document_number in existing_document_numbers:
-                # Обновление
+                # Добавляем в список для bulk_update
                 orders_to_update.append(
                     Order(document_number=document_number, **defaults)
                 )
             else:
-                # Создание
+                # Добавляем в список для bulk_create
                 orders_to_create.append(
                     Order(document_number=document_number, **defaults)
                 )
 
-        # 4. Выполнение массовых операций
-
-        # Массовое создание
+        # 5. Выполнение bulk-операций
         if orders_to_create:
             Order.objects.bulk_create(orders_to_create)
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'✅ Создано {
-                        len(orders_to_create)} новых заказов.'))
+                    f'Успешно создано {
+                        len(orders_to_create)} новых приказов.'))
 
-        # Массовое обновление (используется bulk_update)
         if orders_to_update:
-            # Важно: bulk_update требует явного указания списка полей для
-            # обновления
+            # --- КОРРЕКТИРОВКА: Динамическое получение списка полей ---
+            # Для bulk_update нужны только те поля, которые мы передаем в defaults.
+            # 'document_number' не включаем, т.к. это поле для поиска/сопоставления.
+            fields_to_update = list(defaults.keys())
+
             Order.objects.bulk_update(
                 orders_to_update,
                 fields_to_update
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'🔄 Обновлено {
-                        len(orders_to_update)} существующих заказов.'))
-
-        self.stdout.write(self.style.SUCCESS('✨ Загрузка данных завершена.'))
+                    f'Успешно обновлено {
+                        len(orders_to_update)} существующих приказов.'))

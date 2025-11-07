@@ -1,28 +1,31 @@
-/* Базовый сброс и шрифты */
+/* ========================================================= */
+/* 1. Базовый сброс и макет страницы */
+/* ========================================================= */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background-color: #f0f2f5;
+    background-color: #f0f2f5; /* Светло-серый фон */
     color: #333;
 }
 
-#main_container { /* Замена класса 'container' */
+#main_container { /* Главный контейнер для контента */
     max-width: 1300px;
     margin: 20px auto;
-    padding: 0 20px;
+    padding: 20px;
     background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Мягкая тень */
 }
 
 h1 {
     text-align: center;
-    padding-top: 30px;
-    padding-bottom: 10px;
-    color: #1e3a8a;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    color: #1e3a8a; /* Темно-синий для акцента */
     font-size: 1.8em;
+    font-weight: 600;
 }
 
 .cntr {
@@ -30,7 +33,9 @@ h1 {
     margin: 15px 0;
 }
 
-/* Кнопки и Меню */
+/* ========================================================= */
+/* 2. Кнопки и Меню */
+/* ========================================================= */
 .button_container {
     display: flex;
     flex-wrap: wrap;
@@ -42,7 +47,7 @@ h1 {
 .pp_button {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #3b82f6; /* Новый синий цвет */
+    background-color: #3b82f6; /* Яркий синий */
     color: white;
     text-align: center;
     text-decoration: none;
@@ -54,11 +59,93 @@ h1 {
 }
 
 .pp_button:hover {
-    background-color: #1e40af;
+    background-color: #1e40af; /* Темнее при наведении */
     transform: translateY(-1px);
 }
 
-/* Форма фильтра */
+/* ========================================================= */
+/* 3. Формы (Add/Edit) - .add_form */
+/* ========================================================= */
+.add_form {
+    max-width: 700px;
+    width: 100%;
+    margin: 20px auto;
+    padding: 25px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.add_form form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.add_form p { /* Стилизация p.as_p */
+    display: flex;
+    flex-direction: column;
+    margin: 0; /* Удаляем стандартный отступ p */
+}
+
+.add_form label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+.add_form input,
+.add_form select,
+.add_form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.add_form input:focus,
+.add_form select:focus,
+.add_form textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Эффект свечения */
+    outline: none;
+}
+
+/* ========================================================= */
+/* 4. Форма Входа (.auth_box_center) */
+/* ========================================================= */
+.auth_box_center {
+    max-width: 400px; /* Уменьшаем ширину для входа */
+    margin: 40px auto;
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15); /* Более выраженная тень */
+}
+
+.auth_box_center h1 {
+    font-size: 1.5em;
+    padding-bottom: 10px;
+}
+
+.error_message {
+    padding: 10px;
+    border: 1px solid #f87171;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-weight: 500;
+    text-align: left;
+}
+
+/* ========================================================= */
+/* 5. Фильтры и Поиск */
+/* ========================================================= */
 .filter_container {
     margin-bottom: 20px;
     padding: 15px;
@@ -75,46 +162,24 @@ h1 {
     gap: 15px;
 }
 
-.filter_container label {
-    font-weight: 600;
-    color: #4b5563;
-}
-
-.filter_input {
-    width: 300px;
-    max-width: 100%;
-    border-radius: 6px;
+.filter_input, .filter_container select {
     padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
     box-sizing: border-box;
-    border: 1px solid #d1d5db;
+    max-width: 300px;
 }
 
-.filter_container select {
-    padding: 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background-color: white;
-}
-
-/* Адаптивность для формы фильтра */
-@media (max-width: 900px) {
-    .filter_container form {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .filter_input {
-        width: 100%;
-    }
-}
-
-/* Таблица и Адаптивность */
+/* ========================================================= */
+/* 6. Таблица и Адаптивность */
+/* ========================================================= */
 .table-responsive {
     overflow-x: auto; /* Главный прием для адаптивной таблицы */
     margin: 20px 0;
 }
 
 table {
-    min-width: 1200px; /* Минимальная ширина для просмотра всех колонок */
+    min-width: 1200px;
     width: 100%;
     border-collapse: collapse;
     background-color: #fff;
@@ -124,7 +189,7 @@ th, td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
-    white-space: nowrap; /* Предотвращает перенос в ячейках */
+    white-space: nowrap;
 }
 
 thead th {
@@ -150,49 +215,26 @@ td img {
     vertical-align: middle;
 }
 
-/* Формы (Add/Edit/Login) */
-.add_form {
-    max-width: 700px;
-    width: 100%;
-    margin: 20px auto;
-    padding: 25px;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+/* ========================================================= */
+/* 7. Медиа-запросы (Адаптивность) */
+/* ========================================================= */
+@media (max-width: 900px) {
+    /* Адаптивность для формы фильтра */
+    .filter_container form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter_input, .filter_container select {
+        width: 100%;
+        max-width: 100%;
+    }
 }
-
-.add_form form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.add_form p { /* Стилизация p.as_p */
-    display: flex;
-    flex-direction: column;
-}
-
-.add_form label {
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 5px;
-}
-
-.add_form input,
-.add_form select,
-.add_form textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-}
-
-.add_form input:focus,
-.add_form select:focus,
-.add_form textarea:focus {
-    border-color: #3b82f6;
-    outline: none;
+@media (max-width: 768px) {
+    /* Адаптивность для главного контейнера */
+    #main_container {
+        margin: 10px auto;
+        padding: 10px;
+        border-radius: 0;
+        box-shadow: none;
+    }
 }

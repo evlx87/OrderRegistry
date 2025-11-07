@@ -1,14 +1,21 @@
 {% extends 'orders/base.html' %}
 
 {% block content %}
-<h1>Авторизация пользователя</h1>
-<div class="add_form">
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <div class="button_container">
-        <button class="pp_button" type="submit">Войти</button>
-    </div>
-</form>
+<div class="auth_box_center"> <h1>🔑 Авторизация пользователя</h1>
+
+    {% comment %} Если Django возвращает ошибки, мы их стилизуем {% endcomment %}
+    {% if form.errors %}
+        <p class="error_message">Неправильное имя пользователя или пароль. Попробуйте еще раз.</p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <div class="button_container" style="margin-top: 20px;">
+            <button class="pp_button" type="submit" style="width: 100%;">Войти</button>
+        </div>
+    </form>
 </div>
 {% endblock %}

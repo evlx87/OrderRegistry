@@ -10,7 +10,7 @@ from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
-
+from django.core.cache import cache
 from orders.forms import OrderForm
 from orders.models import Order
 
@@ -22,8 +22,18 @@ class IndexView(ListView):
     context_object_name = 'orders'
 
     def get_year_choices(self):
-        years = Order.objects.dates('issue_date', 'year', order='ASC')
-        return [(year.year, year.year) for year in years]
+        years_cache_key = 'order_years_list'
+        years_list = cache.get(years_cache_key)
+
+        if years_list is None:
+            # Выполняем запрос только если его нет в кеше
+            years = Order.objects.dates('issue_date', 'year', order='ASC')
+            years_list = [(year.year, year.year) for year in years]
+
+            # Сохраняем результат в кеше на 1 час (3600 секунд)
+            cache.set(years_cache_key, years_list, timeout=3600)
+
+        return years_list
 
     def get_queryset(self):
         queryset = super().get_queryset()

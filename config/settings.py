@@ -147,3 +147,11 @@ MEDIA_URL = '/media/'
 LOGIN_REDIRECT_URL = 'orders:index'
 
 JSON_FILES_DIR = os.path.join(BASE_DIR, 'json')
+
+# Настройки кеширования
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'orders_cache_table', # Имя таблицы для кеша
+    }
+}

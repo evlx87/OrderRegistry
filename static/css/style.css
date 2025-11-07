@@ -174,8 +174,8 @@ h1 {
 /* 6. Таблица и Адаптивность */
 /* ========================================================= */
 .table-responsive {
-    overflow-x: auto; /* Главный прием для адаптивной таблицы */
-    margin: 20px 0;
+    overflow-x: auto;
+    margin: 15px 0; /* Уменьшаем вертикальный отступ */
 }
 
 table {
@@ -183,22 +183,25 @@ table {
     width: 100%;
     border-collapse: collapse;
     background-color: #fff;
+    font-size: 0.9em; /* Снижаем базовый размер шрифта для таблицы */
 }
 
 th, td {
-    padding: 12px 15px;
+    padding: 8px 10px; /* Уменьшаем внутренние отступы */
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #d1d5db; /* Более светлая граница */
     white-space: nowrap;
+    vertical-align: middle;
 }
 
 thead th {
     background-color: #1e3a8a;
     color: white;
-    font-weight: 700;
+    font-weight: 600; /* Немного уменьшаем жирность */
     position: sticky;
     top: 0;
     z-index: 10;
+    padding: 10px 10px; /* Чуть больше padding для заголовков */
 }
 
 tbody tr:nth-child(even) {
@@ -210,9 +213,21 @@ tbody tr:hover {
 }
 
 td img {
-    height: 22px;
+    height: 18px; /* Уменьшаем размер иконок */
     width: auto;
     vertical-align: middle;
+}
+
+/* Стилизация ссылок в ячейках */
+td a {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+td a:hover {
+    color: #1e40af;
+    text-decoration: underline;
 }
 
 /* ========================================================= */
@@ -236,5 +251,13 @@ td img {
         padding: 10px;
         border-radius: 0;
         box-shadow: none;
+    }
+}
+@media (max-width: 480px) {
+    table {
+        font-size: 0.8em; /* Еще меньший шрифт на мобильных */
+    }
+    th, td {
+        padding: 6px 8px;
     }
 }

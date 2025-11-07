@@ -1,15 +1,14 @@
-from datetime import datetime
+from datetime import datetime, date
 
 import openpyxl
-from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
-from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.shortcuts import redirect
+from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+
 from orders.forms import OrderForm
 from orders.models import Order
 
@@ -67,7 +66,7 @@ class IndexView(ListView):
         context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")
         context["years"] = self.get_year_choices()
         context["selected_year"] = self.request.GET.get(
-            "filter_year", datetime.date.today().year)
+            "filter_year", date.today().year)
         return context
 
 

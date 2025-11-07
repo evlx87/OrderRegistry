@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from orders.forms import OrderForm
 from orders.models import Order
 
@@ -38,18 +38,27 @@ class IndexView(ListView):
         queryset = super().get_queryset()
         search = self.request.GET.get("search")
         filter_doc_num = self.request.GET.get("filter_doc_num")
-        filter_year = self.request.GET.get("filter_year")
+        year = self.request.GET.get('year')
+
+        if year:
+            try:
+                year_int = int(year)
+                queryset = queryset.filter(issue_date__year=year_int)
+            except ValueError:
+                pass
 
         if search:
-            queryset = queryset.filter(document_title__icontains=search)
+            query = SearchQuery(search, search_type='websearch')
+            vector = SearchVector('document_title')
+            queryset = queryset.annotate(
+                rank=SearchRank(vector, query)
+            ).filter(rank__gte=0.01).order_by('-rank', '-issue_date')
+
         if filter_doc_num:
-            queryset = queryset.filter(document_number__exact=filter_doc_num)
-        if filter_year:
-            queryset = queryset.filter(issue_date__year=int(filter_year))
+            queryset = queryset.filter(
+                document_number__icontains=filter_doc_num)
 
-        queryset = queryset.order_by('-issue_date')
-
-        return queryset
+        return queryset.order_by('-id') if not search else queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -57,7 +66,8 @@ class IndexView(ListView):
         context["search"] = self.request.GET.get("search", "")
         context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")
         context["years"] = self.get_year_choices()
-        context["selected_year"] = self.request.GET.get("filter_year", datetime.date.today().year)
+        context["selected_year"] = self.request.GET.get(
+            "filter_year", datetime.date.today().year)
         return context
 
 
@@ -169,7 +179,8 @@ class ExportToExcelView(View):
             sheet.append(row)
 
         # 5. Подготовка ответа
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename=orders.xlsx'
         workbook.save(response)
 

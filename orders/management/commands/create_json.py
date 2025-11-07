@@ -7,10 +7,17 @@ from datetime import datetime
 class Command(BaseCommand):
     help = 'Создает JSON файл на основе данных приказов'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            'scans_directory',
+            type=str,
+            help='Полный путь к папке, содержащей файлы сканов'
+        )
+
     def handle(self, *args, **kwargs):
         # Укажите директорию, где находятся сканы приказов
-        scans_directory = 'C:\\Users\\evlx.OKK\\Desktop\\scan2024'
-        file_path = os.path.join(settings.JSON_FILES_DIR, 'output2024.json')
+        scans_directory = kwargs['scans_directory']
+        file_path = os.path.join(settings.JSON_FILES_DIR, 'output.json')
 
         # Чтение исходных данных из JSON-файла
         with open(file_path, 'r', encoding="utf-8") as file:

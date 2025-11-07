@@ -86,51 +86,52 @@ class EditOrderView(SuccessMessageMixin, UpdateView):
     success_url = reverse_lazy('orders:index')
     success_message = 'Приказ успешно обновлён!'
 
-    def get_object(self, queryset=None, *args, **kwargs):
-        obj = super().get_object(queryset, *args, **kwargs)
-        if not obj:
-            raise Http404('Object does not exist.')
-        return obj
-
-    def form_invalid(self, form):
-        for error in form.errors.values():
-            for message in error:
-                self.request._messages.add(message.level, message)
-        return super().form_invalid(form)
-
-    def form_valid(self, form):
-        # Получаем текущий объект приказа
-        order = self.object
-
-        # Если дата не указана, оставляем ту, которая была до этого
-        if not form.cleaned_data['issue_date']:
-            order.issue_date = order.issue_date
-
-        # Сохраняем изменения
-        order.save()
-
-        return HttpResponseRedirect(self.get_success_url())
+    # def get_object(self, queryset=None, *args, **kwargs):
+    #     obj = super().get_object(queryset, *args, **kwargs)
+    #     if not obj:
+    #         raise Http404('Object does not exist.')
+    #     return obj
+    #
+    # def form_invalid(self, form):
+    #     for error in form.errors.values():
+    #         for message in error:
+    #             self.request._messages.add(message.level, message)
+    #     return super().form_invalid(form)
+    #
+    # def form_valid(self, form):
+    #     # Получаем текущий объект приказа
+    #     order = self.object
+    #
+    #     # Если дата не указана, оставляем ту, которая была до этого
+    #     if not form.cleaned_data['issue_date']:
+    #         order.issue_date = order.issue_date
+    #
+    #     # Сохраняем изменения
+    #     order.save()
+    #
+    #     return HttpResponseRedirect(self.get_success_url())
 
 
 class DeleteOrderView(DeleteView):
     model = Order
     template_name = 'orders/delete_order.html'
     success_url = reverse_lazy('orders:index')
+    success_message = 'Приказ успешно удален.'
 
-    def delete(self, request, *args, **kwargs):
-        obj = self.get_object_or_404(*args, **kwargs)
-        if obj:
-            obj.delete()
-            messages.success(self.request, 'Приказ удален.')
-        else:
-            messages.error(self.request, 'Приказ не найден.')
-        return redirect(self.success_url)
-
-    def get_object_or_404(self, queryset, *args, **kwargs):
-        try:
-            return self.get_object(queryset, *args, **kwargs)
-        except Http404:
-            raise Http404('Object does not exist.')
+    # def delete(self, request, *args, **kwargs):
+    #     obj = self.get_object_or_404(*args, **kwargs)
+    #     if obj:
+    #         obj.delete()
+    #         messages.success(self.request, 'Приказ удален.')
+    #     else:
+    #         messages.error(self.request, 'Приказ не найден.')
+    #     return redirect(self.success_url)
+    #
+    # def get_object_or_404(self, queryset, *args, **kwargs):
+    #     try:
+    #         return self.get_object(queryset, *args, **kwargs)
+    #     except Http404:
+    #         raise Http404('Object does not exist.')
 
 
 class ExportToExcelView(View):

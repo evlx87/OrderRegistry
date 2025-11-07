@@ -126,7 +126,8 @@ class ExportToExcelView(View):
         for order in orders:
             data.append([
                 order.document_number,
-                order.issue_date.strftime('%d.%m.%Y'),
+                order.issue_date.strftime('%d.%m.%Y') if order.issue_date else '',
+                # order.issue_date.strftime('%d.%m.%Y'),
                 order.document_title,
                 order.signed_by,
                 order.responsible_executor,

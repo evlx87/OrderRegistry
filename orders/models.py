@@ -7,16 +7,17 @@ from django.utils import timezone
 
 # Create your models here.
 def order_scan_upload_to(instance, filename):
-    # Преобразуем дату в объект datetime
-    order_datetime = datetime.combine(instance.issue_date, datetime.min.time())
-    aware_datetime = timezone.make_aware(order_datetime)
-    # Локализуем объект datetime в текущей временной зоне
-    localized_datetime = timezone.localtime(aware_datetime)
-
-    # Теперь можем безопасно получать год, месяц и день
-    year = localized_datetime.year
-    month = f"{localized_datetime.month:02}"
-    day = f"{localized_datetime.day:02}"
+    if not instance.issue_date:
+        year = 'unknown_date'
+        day = 'dd'
+        month = 'mm'
+    else:
+        order_datetime = datetime.combine(instance.issue_date, datetime.min.time())
+        aware_datetime = timezone.make_aware(order_datetime)
+        localized_datetime = timezone.localtime(aware_datetime)
+        year = localized_datetime.year
+        month = f"{localized_datetime.month:02}"
+        day = f"{localized_datetime.day:02}"
 
     # Формируем имя файла
     filename = f"{instance.document_number}_{day}.{month}.{year}.pdf"

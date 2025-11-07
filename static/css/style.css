@@ -1,110 +1,198 @@
-/* Таблица */
-table {
-    width: 100%;
-    border-collapse: collapse;
+/* Базовый сброс и шрифты */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    color: #333;
 }
 
-th, td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
+#main_container { /* Замена класса 'container' */
+    max-width: 1300px;
+    margin: 20px auto;
+    padding: 0 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-thead th {
-    background-color: #f0f0f0;
-}
-
-/* Заголовки */
 h1 {
     text-align: center;
+    padding-top: 30px;
+    padding-bottom: 10px;
+    color: #1e3a8a;
+    font-size: 1.8em;
 }
 
-/* Кнопки */
 .cntr {
     text-align: center;
+    margin: 15px 0;
 }
+
+/* Кнопки и Меню */
 .button_container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
-    margin: 20px;
+    gap: 15px;
+    margin: 20px 0;
 }
 
 .pp_button {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #007BFF;
+    background-color: #3b82f6; /* Новый синий цвет */
     color: white;
     text-align: center;
     text-decoration: none;
-    border-radius: 5px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
-/* Фильтр */
+.pp_button:hover {
+    background-color: #1e40af;
+    transform: translateY(-1px);
+}
+
+/* Форма фильтра */
 .filter_container {
     margin-bottom: 20px;
-    text-align: center;
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+.filter_container form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter_container label {
+    font-weight: 600;
+    color: #4b5563;
 }
 
 .filter_input {
-    width: 400px;
-    border-radius: 8px;
+    width: 300px;
+    max-width: 100%;
+    border-radius: 6px;
     padding: 10px;
     box-sizing: border-box;
+    border: 1px solid #d1d5db;
 }
-/* Добавление и редактирование приказаов */
+
+.filter_container select {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: white;
+}
+
+/* Адаптивность для формы фильтра */
+@media (max-width: 900px) {
+    .filter_container form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter_input {
+        width: 100%;
+    }
+}
+
+/* Таблица и Адаптивность */
+.table-responsive {
+    overflow-x: auto; /* Главный прием для адаптивной таблицы */
+    margin: 20px 0;
+}
+
+table {
+    min-width: 1200px; /* Минимальная ширина для просмотра всех колонок */
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap; /* Предотвращает перенос в ячейках */
+}
+
+thead th {
+    background-color: #1e3a8a;
+    color: white;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+tbody tr:hover {
+    background-color: #e0f2fe;
+}
+
+td img {
+    height: 22px;
+    width: auto;
+    vertical-align: middle;
+}
+
+/* Формы (Add/Edit/Login) */
 .add_form {
-    width: 800px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    max-width: 700px;
+    width: 100%;
+    margin: 20px auto;
+    padding: 25px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .add_form form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* Делит форму на две колонки */
-    grid-gap: 10px;
-    /* Расстояние между элементами */
-    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.add_form p { /* Стилизация p.as_p */
+    display: flex;
+    flex-direction: column;
 }
 
 .add_form label {
-    grid-column: span 1;
-    /* Занимает обе колонки */
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
 }
 
 .add_form input,
-.add_form select {
+.add_form select,
+.add_form textarea {
     width: 100%;
-    /* Занимает всю ширину ячейки */
-    padding: 5px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
     box-sizing: border-box;
-    /* Размер с учетом padding */
-}
-.add_form .btn-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
+    transition: border-color 0.2s;
 }
 
-.add_form button {
-    margin: 0 10px;
-    color: white;
-    font-weight: bold;
-}
-
-button:hover {
-    background-color: brown;
-    color: white;
-}
-
-/* Авторизация */
-.auth_box_center {
-    justify-content: center;
-    text-align: center;
-    padding-top: 20px;
-    margin: auto;
-    width: 440px;
+.add_form input:focus,
+.add_form select:focus,
+.add_form textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
 }

@@ -1,16 +1,15 @@
-import datetime
-import io
+from datetime import datetime
 
+import openpyxl
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.cache import cache
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from openpyxl.utils import get_column_letter
-from openpyxl.workbook import Workbook
-from django.core.cache import cache
+
 from orders.forms import OrderForm
 from orders.models import Order
 
@@ -126,59 +125,52 @@ class DeleteOrderView(DeleteView):
 
 class ExportToExcelView(View):
     def get(self, request, *args, **kwargs):
-        orders = Order.objects.all().order_by('-id')  # Получение всех объектов модели заказа
+        # 1. Определение полей для выборки и заголовков
+        field_names = [
+            'document_number', 'issue_date', 'document_title', 'signed_by',
+            'responsible_executor', 'transferred_to_execution',
+            'transferred_for_storage', 'heraldic_blank_number', 'note'
+        ]
 
-        # Данные для заполнения таблицы
-        data = [['Номер документа', 'Дата издания', 'Название документа', 'Кем подписан документ',
-                 'Ответственный исполнитель', 'Кому передан (ответственный за исполнение приказа)',
-                 'Кому передано на хранение', 'Номер гербового бланка', 'Примечание']]
+        headers = [
+            'Номер документа', 'Дата издания', 'Наименование документа',
+            'Подписант', 'Ответственный исполнитель', 'Передан на исполнение',
+            'Передан на хранение', 'Номер геральдического бланка', 'Примечание'
+        ]
 
-        for order in orders:
-            data.append([
-                order.document_number,
-                order.issue_date.strftime('%d.%m.%Y') if order.issue_date else '',
-                # order.issue_date.strftime('%d.%m.%Y'),
-                order.document_title,
-                order.signed_by,
-                order.responsible_executor,
-                order.transferred_to_execution,
-                order.transferred_for_storage,
-                order.heraldic_blank_number,
-                order.note
-            ])
+        # 2. ОПТИМИЗИРОВАННЫЙ ЗАПРОС (Шаг 5)
+        # Получаем только необходимые значения, а не полные объекты модели
+        orders_data = Order.objects.order_by('-id').values_list(*field_names)
 
-        # Создание новой рабочей книги
-        wb = Workbook()
-        ws = wb.active
+        data = [headers]
 
-        # Заполнение данными
+        # 3. Обработка данных
+        for order_tuple in orders_data:
+            order_list = list(order_tuple)
+
+            # Индекс 1 соответствует issue_date
+            issue_date = order_list[1]
+
+            # ИСПРАВЛЕНИЕ БАГА: Проверка на None/Null (Шаг 2)
+            # Форматируем дату или оставляем пустую строку
+            if issue_date:
+                # issue_date - это объект datetime.date или datetime.datetime
+                order_list[1] = issue_date.strftime('%d.%m.%Y')
+            else:
+                order_list[1] = ''
+
+            data.append(order_list)
+
+        # 4. Создание файла Excel
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+
         for row in data:
-            ws.append(row)
+            sheet.append(row)
 
-        # Установка ширины колонок
-        dim_holder = {}
-        for col in range(len(data[0])):
-            for row in range(1, len(data) + 1):
-                column_letter = get_column_letter(col + 1)
-                cell_value = str(ws.cell(row=row, column=col + 1).value)
-                try:
-                    dim_holder[column_letter].append(len(cell_value))
-                except KeyError:
-                    dim_holder[column_letter] = [len(cell_value)]
+        # 5. Подготовка ответа
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=orders.xlsx'
+        workbook.save(response)
 
-        for col, widths in dim_holder.items():
-            max_width = max(widths)
-            ws.column_dimensions[col].width = max_width + 3
-
-        # Сохранение файла в память
-        output = io.BytesIO()
-        wb.save(output)
-        output.seek(0)
-
-        # Отправка файла пользователю
-        response = HttpResponse(
-            content=output.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        )
-        response['Content-Disposition'] = f'attachment; filename="orders_{datetime.datetime.now().strftime("%Y-%m-%d")}.xlsx"'
         return response

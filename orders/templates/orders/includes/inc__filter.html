@@ -1,15 +1,28 @@
-<div class="filter_container">
-    <form action="" method="GET">
-        <input class="filter_input" type="text" name="search" value="{{ search }}" placeholder="Введите название документа...">
-        <input class="filter_input" type="text" name="filter_doc_num" value="{{ filter_doc_num }}" placeholder="Введите точный номер документа...">
-         <!-- Поле для выбора года -->
-        <label for="filter_year">Выбрать год:</label>
-        <select name="filter_year">
-            <option value="">--- Выберите год ---</option>
-            {% for year in years %}
-                <option value="{{ year.0 }}" {% if year.0 == selected_year %}selected{% endif %}>{{ year.0 }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="pp_button">Найти</button>
+<div class="container my-4 p-3 border rounded shadow-sm">
+    <form class="row g-3 align-items-end" action="" method="GET">
+
+        <div class="col-md-5 col-lg-4">
+            <label for="search_input" class="form-label visually-hidden">Поиск по названию</label>
+            <input class="form-control" type="text" id="search_input" name="search" value="{{ search }}" placeholder="Введите название документа...">
+        </div>
+
+        <div class="col-md-3 col-lg-3">
+            <label for="num_input" class="form-label visually-hidden">Поиск по номеру</label>
+            <input class="form-control" type="text" id="num_input" name="filter_doc_num" value="{{ filter_doc_num }}" placeholder="Точный номер документа...">
+        </div>
+
+        <div class="col-md-2 col-lg-3">
+            <label for="filter_year" class="form-label">Выбрать год:</label>
+            <select class="form-select" id="filter_year" name="filter_year">
+                <option value="">--- Все ---</option>
+                {% for year in years %}
+                    <option value="{{ year.0 }}" {% if year.0 == selected_year %}selected{% endif %}>{{ year.0 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2 col-lg-2">
+            <button type="submit" class="btn btn-primary w-100">Найти</button>
+        </div>
     </form>
 </div>

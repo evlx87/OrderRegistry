@@ -14,8 +14,10 @@
         {% endblock %}
         {% block main_menu %}
         {% endblock %}
-        {% block content %}
-        {% endblock %}
+        <main class="container mt-4">
+            {% block content %}
+            {% endblock %}
+        </main>
     </div>
     <script src="{% static 'js-bs/bootstrap.bundle.min.js' %}"></script>
     {% block extra_js %}

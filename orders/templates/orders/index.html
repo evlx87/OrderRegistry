@@ -33,15 +33,17 @@
                     <tr class="{% if not order.is_active %}table-secondary{% endif %}">
                         <th scope="row">
                             {% if page_obj %}
-                                {# Если page_obj существует (активна пагинация), вычисляем сквозной номер #}
                                 {{ forloop.counter0|add:page_obj.start_index }}
                             {% else %}
-                                {# Если page_obj не существует, используем простой порядковый номер строки #}
                                 {{ forloop.counter }}
                             {% endif %}
                         </th>
                         <td>
-                            <a href="{% url 'orders:edit_order' order.pk %}" class="link-primary text-decoration-none">
+                            <a href="#" class="link-primary text-decoration-none view-detail-btn"
+                               data-bs-toggle="modal"
+                               data-bs-target="#modalContainer"
+                               data-url="{% url 'orders:detail_order' order.pk %}"
+                               title="Посмотреть полную карточку">
                                 <strong>{{ order.document_number }}</strong>
                             </a>
                         </td>
@@ -50,10 +52,16 @@
                         <td>{{ order.signed_by|default_if_none:"---" }}</td>
                         <td>{{ order.responsible_executor|default_if_none:"---" }}</td>
                         <td class="text-nowrap">
-                            <a href="{% url 'orders:edit_order' order.pk %}" class="text-decoration-none me-2" title="Редактировать/Подробнее">
-                                                            </a>
+                            <a href="#" class="text-decoration-none me-2 edit-btn"
+                               data-bs-toggle="modal"
+                               data-bs-target="#modalContainer"
+                               data-url="{% url 'orders:edit_order' order.pk %}"
+                               title="Редактировать">
+
+                            </a>
                             <a href="{% url 'orders:delete_order' order.pk %}" class="text-decoration-none" title="Удалить">
-                                                            </a>
+
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
@@ -68,23 +76,73 @@
         </div>
 
         {% if is_paginated %}
-            <nav>
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.filter_doc_num %}&filter_doc_num={{ request.GET.filter_doc_num }}{% endif %}{% if request.GET.filter_year %}&filter_year={{ request.GET.filter_year }}{% endif %}">Предыдущая</a></li>
-                    {% endif %}
-                    {% for i in page_obj.paginator.page_range %}
-                        {% if page_obj.number == i %}
-                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                            <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.filter_doc_num %}&filter_doc_num={{ request.GET.filter_doc_num }}{% endif %}{% if request.GET.filter_year %}&filter_year={{ request.GET.filter_year }}{% endif %}">{{ i }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                    {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.filter_doc_num %}&filter_doc_num={{ request.GET.filter_doc_num }}{% endif %}{% if request.GET.filter_year %}&filter_year={{ request.GET.filter_year }}{% endif %}">Следующая</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
+            {% endif %}
     </div>
+
+    <div class="modal fade" id="modalContainer" tabindex="-1" aria-labelledby="modalContainerLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                </div>
+        </div>
+    </div>
+
 {% endblock content %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        $(document).ready(function() {
+            var modalContainer = $('#modalContainer');
+            var modalContent = modalContainer.find('.modal-content');
+
+            // Обработчик клика для всех кнопок, которые должны открывать модальное окно
+            $('.view-detail-btn, .edit-btn').on('click', function(e) {
+                e.preventDefault();
+                var url = $(this).data('url');
+
+                // Очистка предыдущего содержимого и показ спиннера
+                modalContent.html('<div class="d-flex justify-content-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Загрузка...</span></div></div>');
+
+                // Асинхронная загрузка контента в модальное окно
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(data) {
+                        modalContent.html(data);
+                    },
+                    error: function() {
+                        modalContent.html('<div class="modal-header"><h5 class="modal-title">Ошибка</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><p class="text-danger">Не удалось загрузить данные. Попробуйте снова.</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div>');
+                    }
+                });
+            });
+
+            // Обработчик для форм внутри модального окна (для сохранения изменений без перезагрузки)
+            modalContainer.on('submit', 'form', function(e) {
+                e.preventDefault();
+                var form = $(this);
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: form.attr('method'),
+                    data: new FormData(form[0]), // FormData для обработки файлов
+                    processData: false,
+                    contentType: false,
+                    success: function(data) {
+                        // Если в ответ приходит форма (значит, были ошибки валидации)
+                        if (data.indexOf('modal-body') > -1) {
+                            modalContent.html(data);
+                        } else {
+                            // Если успешно сохранено, закрываем модальное окно и перезагружаем страницу (или обновляем строку таблицы)
+                            modalContainer.modal('hide');
+                            location.reload(); // Простейший способ обновления
+                        }
+                    },
+                    error: function() {
+                        alert('Произошла ошибка при сохранении данных.');
+                    }
+                });
+            });
+
+        });
+    </script>
+{% endblock scripts %}

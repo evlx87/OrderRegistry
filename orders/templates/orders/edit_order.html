@@ -1,65 +1,56 @@
-{% extends 'orders/base.html' %}
-{% load static %}
 {% load django_bootstrap5 %}
 
-{% block title %}
-<title>Редактирование приказа</title>
-{% endblock %}
-
-{% block content %}
-    <div class="container mt-4">
-        <h2 class="mb-4">Карточка документа №{{ order.document_number|default_if_none:"[НОВЫЙ]" }}</h2>
-        <h3 class="mb-4">Редактирование</h3>
-
-        <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
-            {% csrf_token %}
-
-            <div class="row">
-                <div class="col-md-6">
-                    <fieldset class="p-3 border rounded mb-3">
-                        <legend class="float-none w-auto px-2 fs-6">Основные данные</legend>
-                        {% bootstrap_field form.document_number %}
-                        {% bootstrap_field form.issue_date %}
-                        {% bootstrap_field form.document_title %}
-                        {% bootstrap_field form.signed_by %}
-                        {% bootstrap_field form.responsible_executor %}
-                    </fieldset>
-                </div>
-
-                <div class="col-md-6">
-                    <fieldset class="p-3 border rounded mb-3">
-                        <legend class="float-none w-auto px-2 fs-6">Передача, бланки и статус</legend>
-                        {% bootstrap_field form.transferred_to_execution %}
-                        {% bootstrap_field form.transferred_for_storage %}
-                        {% bootstrap_field form.heraldic_blank_number %}
-                        {% bootstrap_field form.is_active %}
-                    </fieldset>
-                </div>
-
-                <div class="col-12">
-                    <fieldset class="p-3 border rounded mb-4">
-                        <legend class="float-none w-auto px-2 fs-6">Примечания и скан</legend>
-                        {% bootstrap_field form.note %}
-                        {% bootstrap_field form.scan %}
-
-                        {% if order.scan %}
-                        <p class="mt-2">
-                            Текущий скан:
-                            <a href="{{ order.scan.url }}" target="_blank" class="link-secondary">
-                                {{ order.scan.name|cut:"orders_scan/" }} (Посмотреть)
-                            </a>
-                        </p>
-                        {% endif %}
-
-                    </fieldset>
-                </div>
-
-                <div class="col-12 text-end">
-                    <a href="{% url 'orders:index' %}" class="btn btn-secondary me-2">Отмена</a>
-                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-                </div>
+<div class="modal-header">
+    <h5 class="modal-title" id="orderEditModalLabel">
+        Редактирование документа №{{ order.document_number|default_if_none:"[НОВЫЙ]" }}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<form method="post" enctype="multipart/form-data" action="{% url 'orders:edit_order' order.pk %}">
+    {% csrf_token %}
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-6">
+                <fieldset class="p-3 border rounded mb-3">
+                    <legend class="float-none w-auto px-2 fs-6">Основные данные</legend>
+                    {% bootstrap_field form.document_number %}
+                    {% bootstrap_field form.issue_date %}
+                    {% bootstrap_field form.document_title %}
+                    {% bootstrap_field form.signed_by %}
+                    {% bootstrap_field form.responsible_executor %}
+                </fieldset>
             </div>
 
-        </form>
+            <div class="col-md-6">
+                <fieldset class="p-3 border rounded mb-3">
+                    <legend class="float-none w-auto px-2 fs-6">Передача, бланки и статус</legend>
+                    {% bootstrap_field form.transferred_to_execution %}
+                    {% bootstrap_field form.transferred_for_storage %}
+                    {% bootstrap_field form.heraldic_blank_number %}
+                    {% bootstrap_field form.is_active %}
+                </fieldset>
+            </div>
+
+            <div class="col-12">
+                <fieldset class="p-3 border rounded mb-4">
+                    <legend class="float-none w-auto px-2 fs-6">Примечания и скан</legend>
+                    {% bootstrap_field form.note %}
+                    {% bootstrap_field form.scan %}
+
+                    {% if order.scan %}
+                    <p class="mt-2">
+                        Текущий скан:
+                        <a href="{{ order.scan.url }}" target="_blank" class="link-secondary">
+                            {{ order.scan.name|cut:"orders_scan/" }} (Посмотреть)
+                        </a>
+                    </p>
+                    {% endif %}
+                </fieldset>
+            </div>
+        </div>
     </div>
-{% endblock content %}
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </div>
+</form>

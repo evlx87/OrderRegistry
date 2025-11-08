@@ -6,8 +6,10 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
+from django.views.generic import DetailView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from orders.forms import OrderForm
@@ -80,37 +82,39 @@ class AddOrderView(SuccessMessageMixin, CreateView):
     success_message = 'Приказ успешно добавлен!'
 
 
-class EditOrderView(SuccessMessageMixin, UpdateView):
+class OrderDetailView(DetailView):
     model = Order
+    # Используем новый шаблон для деталей
+    template_name = 'orders/order_detail.html'
+    context_object_name = 'order'
+
+    # DetailView по умолчанию возвращает HTTP-ответ.
+    # Если вы используете AJAX, вам, возможно, не нужны изменения в этом классе,
+    # если ваш код JS обрабатывает форму, как показано выше.
+    # Если вы используете просто render(request, '...', context), то это то же самое.
+
+
+class OrderEditView(UpdateView):
+    model = Order
+    # Используем модифицированный шаблон для редактирования
     template_name = 'orders/edit_order.html'
     form_class = OrderForm
-    success_url = reverse_lazy('orders:index')
-    success_message = 'Приказ успешно обновлён!'
+    context_object_name = 'order'
 
-    # def get_object(self, queryset=None, *args, **kwargs):
-    #     obj = super().get_object(queryset, *args, **kwargs)
-    #     if not obj:
-    #         raise Http404('Object does not exist.')
-    #     return obj
-    #
-    # def form_invalid(self, form):
-    #     for error in form.errors.values():
-    #         for message in error:
-    #             self.request._messages.add(message.level, message)
-    #     return super().form_invalid(form)
-    #
-    # def form_valid(self, form):
-    #     # Получаем текущий объект приказа
-    #     order = self.object
-    #
-    #     # Если дата не указана, оставляем ту, которая была до этого
-    #     if not form.cleaned_data['issue_date']:
-    #         order.issue_date = order.issue_date
-    #
-    #     # Сохраняем изменения
-    #     order.save()
-    #
-    #     return HttpResponseRedirect(self.get_success_url())
+    # Переопределяем метод для обработки AJAX-запросов и частичной загрузки шаблона
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        return render(request, self.template_name, self.get_context_data(form=form))
+
+    def form_valid(self, form):
+        # При успешном сохранении возвращаем пустой ответ или JSON (для AJAX)
+        form.save()
+        return render(self.request, 'orders/empty.html')  # Возвращаем пустой шаблон или HTTP 204
+
+    def form_invalid(self, form):
+        # При ошибках валидации возвращаем шаблон формы, чтобы она отобразилась в модальном окне
+        return render(self.request, self.template_name, self.get_context_data(form=form))
 
 
 class DeleteOrderView(DeleteView):

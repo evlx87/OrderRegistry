@@ -1,0 +1,49 @@
+<div class="modal-header">
+    <h5 class="modal-title" id="orderDetailModalLabel">
+        Карточка документа №{{ order.document_number|default_if_none:"---" }}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            <h6 class="text-primary mb-2">Основные данные</h6>
+            <ul class="list-unstyled">
+                <li><strong>Номер документа:</strong> {{ order.document_number|default_if_none:"---" }}</li>
+                <li><strong>Дата издания:</strong> {{ order.issue_date|default_if_none:"---" }}</li>
+                <li><strong>Название документа:</strong> {{ order.document_title|default_if_none:"---" }}</li>
+                <li><strong>Кем подписан:</strong> {{ order.signed_by|default_if_none:"---" }}</li>
+                <li><strong>Ответственный исполнитель:</strong> {{ order.responsible_executor|default_if_none:"---" }}</li>
+            </ul>
+        </div>
+
+        <div class="col-md-6">
+            <h6 class="text-primary mb-2">Передача, бланки и статус</h6>
+            <ul class="list-unstyled">
+                <li><strong>Передан в исполнение:</strong> {% if order.transferred_to_execution %}Да{% else %}Нет{% endif %}</li>
+                <li><strong>Передан на хранение:</strong> {% if order.transferred_for_storage %}Да{% else %}Нет{% endif %}</li>
+                <li><strong>Номер геральдического бланка:</strong> {{ order.heraldic_blank_number|default_if_none:"---" }}</li>
+                <li><strong>Статус (Активен):</strong> {% if order.is_active %}<span class="badge bg-success">Активен</span>{% else %}<span class="badge bg-secondary">Неактивен</span>{% endif %}</li>
+            </ul>
+        </div>
+
+        <div class="col-12 mt-3">
+            <h6 class="text-primary mb-2">Примечания и скан</h6>
+            <p><strong>Примечание:</strong> {{ order.note|default_if_none:"---" }}</p>
+
+            {% if order.scan %}
+            <p class="mt-2">
+                <strong>Скан:</strong>
+                <a href="{{ order.scan.url }}" target="_blank" class="link-secondary">
+                    Посмотреть файл ({{ order.scan.name|cut:"orders_scan/" }})
+                </a>
+            </p>
+            {% else %}
+            <p><strong>Скан:</strong> Отсутствует</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+</div>

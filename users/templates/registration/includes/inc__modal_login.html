@@ -1,0 +1,25 @@
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel">🔑 Авторизация пользователя</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            Неправильное имя пользователя или пароль. Попробуйте еще раз.
+                        </div>
+                    {% endif %}
+
+                    {{ login_form.as_p }}  <input type="hidden" name="next" value="{{ request.path }}">
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn pp_button w-100">Войти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

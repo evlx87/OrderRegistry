@@ -1,6 +1,7 @@
-from datetime import datetime, date
+from datetime import date
 
 import openpyxl
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
@@ -65,8 +66,9 @@ class IndexView(ListView):
         context["search"] = self.request.GET.get("search", "")
         context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")
         context["years"] = self.get_year_choices()
-        context["selected_year"] = self.request.GET.get(
-            "filter_year", date.today().year)
+        context["selected_year"] = self.request.GET.get("filter_year", date.today().year)
+        context['order_form'] = OrderForm()
+        context['login_form'] = AuthenticationForm()
         return context
 
 

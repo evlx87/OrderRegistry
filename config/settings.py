@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.postgres',
 
+    'django_bootstrap5',
+
     'orders',
     'users',
 ]

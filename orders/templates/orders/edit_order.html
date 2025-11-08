@@ -1,40 +1,65 @@
 {% extends 'orders/base.html' %}
 {% load static %}
+{% load django_bootstrap5 %}
 
 {% block title %}
 <title>Редактирование приказа</title>
 {% endblock %}
 
 {% block content %}
-<h1>Редактирование приказа</h1>
-<div class="add_form">
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <div class="button_container">
-            <button class="pp_button" type="submit">Сохранить</button>
-            <button class="pp_button" id="cancelButton">Отмена</button>
-        </div>
-    </form>
-</div>
-{% endblock %}
+    <div class="container mt-4">
+        <h2 class="mb-4">Карточка документа №{{ order.document_number|default_if_none:"[НОВЫЙ]" }}</h2>
+        <h3 class="mb-4">Редактирование</h3>
 
-{% block script %}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Отключаем встроенную валидацию браузера для поля date
-        var dateInput = document.querySelector('input[type="date"]');
-        if (dateInput) {
-            dateInput.setAttribute('novalidate', true);
-        }
+        <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
+            {% csrf_token %}
 
-        // Обработчик для кнопки отмены
-        var cancelButton = document.querySelector('#cancelButton');
-        if (cancelButton) {
-            cancelButton.addEventListener('click', function () {
-                window.location.href = "{% url 'orders:index' %}";
-            });
-        }
-    });
-</script>
-{% endblock %}
+            <div class="row">
+                <div class="col-md-6">
+                    <fieldset class="p-3 border rounded mb-3">
+                        <legend class="float-none w-auto px-2 fs-6">Основные данные</legend>
+                        {% bootstrap_field form.document_number %}
+                        {% bootstrap_field form.issue_date %}
+                        {% bootstrap_field form.document_title %}
+                        {% bootstrap_field form.signed_by %}
+                        {% bootstrap_field form.responsible_executor %}
+                    </fieldset>
+                </div>
+
+                <div class="col-md-6">
+                    <fieldset class="p-3 border rounded mb-3">
+                        <legend class="float-none w-auto px-2 fs-6">Передача, бланки и статус</legend>
+                        {% bootstrap_field form.transferred_to_execution %}
+                        {% bootstrap_field form.transferred_for_storage %}
+                        {% bootstrap_field form.heraldic_blank_number %}
+                        {% bootstrap_field form.is_active %}
+                    </fieldset>
+                </div>
+
+                <div class="col-12">
+                    <fieldset class="p-3 border rounded mb-4">
+                        <legend class="float-none w-auto px-2 fs-6">Примечания и скан</legend>
+                        {% bootstrap_field form.note %}
+                        {% bootstrap_field form.scan %}
+
+                        {% if order.scan %}
+                        <p class="mt-2">
+                            Текущий скан:
+                            <a href="{{ order.scan.url }}" target="_blank" class="link-secondary">
+                                {{ order.scan.name|cut:"orders_scan/" }} (Посмотреть)
+                            </a>
+                        </p>
+                        {% endif %}
+
+                    </fieldset>
+                </div>
+
+                <div class="col-12 text-end">
+                    <a href="{% url 'orders:index' %}" class="btn btn-secondary me-2">Отмена</a>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+{% endblock content %}

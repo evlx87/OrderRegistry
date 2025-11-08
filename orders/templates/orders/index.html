@@ -1,70 +1,90 @@
 {% extends 'orders/base.html' %}
 {% load static %}
+
 {% block title %}
     {{ page_title|title }}
 {% endblock %}
+
 {% block page_header %}
     <h1>РЕЕСТР ПРИКАЗОВ <br>ФГКОУ «Объединенный Санкт-Петербургский кадетский корпус <br>Следственного комитета Российской Федерации <br>имени Маршала Советского Союза Г.К. Жукова»</h1>
 {% endblock %}
+
 {% block content %}
-    <hr>
-    {% include 'orders/includes/inc__main_menu.html' %}
-    <hr>
-    {% include 'orders/includes/inc__filter.html' %}
-    <hr>
-    {% include 'orders/includes/inc__modal_add_order.html' %}
-    {% include 'registration/includes/inc__modal_login.html' %}
-    <div class="table-responsive"> <table>
-            <thead>
-                <tr>
-                    <th>Номер документа</th>
-                    <th>Дата издания</th>
-                    <th>Название документа</th>
-                    <th>Кем подписан документ</th>
-                    <th>Ответственный исполнитель</th>
-                    <th>Кому передан (ответственный за исполнение приказа)</th>
-                    <th>Кому передано на хранение</th>
-                    <th>Номер гербового бланка</th>
-                    <th>Примечание</th>
-                    <th>Статус</th>
-                    {% if user.is_authenticated %}
-                    <th>Редактировать</th>
+    <div class="container mt-4">
+        <h2>Список приказов</h2>
+        {% include 'orders/includes/inc__filter.html' %}
+        {% include 'orders/includes/inc__main_menu.html' %}
+
+        <div class="table-responsive mt-3">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Номер документа</th>
+                        <th scope="col">Дата издания</th>
+                        <th scope="col">Название документа</th>
+                        <th scope="col">Кем подписан документ</th>
+                        <th scope="col">Ответственный исполнитель</th>
+                        <th scope="col">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="{% if not order.is_active %}table-secondary{% endif %}">
+                        <th scope="row">
+                            {% if page_obj %}
+                                {# Если page_obj существует (активна пагинация), вычисляем сквозной номер #}
+                                {{ forloop.counter0|add:page_obj.start_index }}
+                            {% else %}
+                                {# Если page_obj не существует, используем простой порядковый номер строки #}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </th>
+                        <td>
+                            <a href="{% url 'orders:edit_order' order.pk %}" class="link-primary text-decoration-none">
+                                <strong>{{ order.document_number }}</strong>
+                            </a>
+                        </td>
+                        <td>{{ order.issue_date|default_if_none:"---" }}</td>
+                        <td>{{ order.document_title|truncatechars:100 }}</td>
+                        <td>{{ order.signed_by|default_if_none:"---" }}</td>
+                        <td>{{ order.responsible_executor|default_if_none:"---" }}</td>
+                        <td class="text-nowrap">
+                            <a href="{% url 'orders:edit_order' order.pk %}" class="text-decoration-none me-2" title="Редактировать/Подробнее">
+                                                            </a>
+                            <a href="{% url 'orders:delete_order' order.pk %}" class="text-decoration-none" title="Удалить">
+                                                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            По вашему запросу ничего не найдено.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.filter_doc_num %}&filter_doc_num={{ request.GET.filter_doc_num }}{% endif %}{% if request.GET.filter_year %}&filter_year={{ request.GET.filter_year }}{% endif %}">Предыдущая</a></li>
                     {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-            {% for order in orders %}
-                <tr>
-                    <td>
-                        {% if order.scan %}
-                            <a href="{{ order.scan.url }}" target="_blank">{{ order.document_number }}</a>
-                        {% else %}
-                            {{ order.document_number }}
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.filter_doc_num %}&filter_doc_num={{ request.GET.filter_doc_num }}{% endif %}{% if request.GET.filter_year %}&filter_year={{ request.GET.filter_year }}{% endif %}">{{ i }}</a></li>
                         {% endif %}
-                    </td>
-                    <td>{{ order.issue_date|date:"d.m.Y" }}</td>
-                    <td>{{ order.document_title }}</td>
-                    <td>{{ order.signed_by }}</td>
-                    <td>{{ order.responsible_executor }}</td>
-                    <td>{{ order.transferred_to_execution }}</td>
-                    <td>{{ order.transferred_for_storage }}</td>
-                    <td>{{ order.heraldic_blank_number }}</td>
-                    <td>{{ order.note }}</td>
-                    <td>
-                        {% if order.is_active %}
-                            <img src="{% static 'img/img_true.png' %}">
-                        {% else %}
-                            <img src="{% static 'img/img_false.png' %}">
-                        {% endif %}
-                    </td>
-                    {% if user.is_authenticated %}
-                    <td>
-                        <a href="{% url 'orders:edit_order' pk=order.pk %}"><img src="{% static 'img/edit_order.png' %}"></a>
-                        <a href="{% url 'orders:delete_order' pk=order.pk %}"><img src="{% static 'img/delete_order.png' %}"></a>
-                    </td>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.filter_doc_num %}&filter_doc_num={{ request.GET.filter_doc_num }}{% endif %}{% if request.GET.filter_year %}&filter_year={{ request.GET.filter_year }}{% endif %}">Следующая</a></li>
                     {% endif %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div> {% endblock %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+{% endblock content %}

@@ -5,21 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %} {% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css-bs/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css-bs/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'orders/css/style.css' %}">
 </head>
 <body>
     <div id="main_container" class="container">
         {% block page_header %}
         {% endblock %}
         {% block main_menu %}
-        {% endblock %}
+        {% endblock %}\
         <main class="container mt-4">
             {% block content %}
             {% endblock %}
         </main>
     </div>
-    <script src="{% static 'js-bs/bootstrap.bundle.min.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{% static 'orders/js-bs/bootstrap.bundle.min.js' %}"></script>
     {% block extra_js %}
     {% endblock %}
 </body>

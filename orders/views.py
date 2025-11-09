@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
@@ -79,13 +79,34 @@ class AddOrderView(SuccessMessageMixin, CreateView):
     form_class = OrderForm
     template_name = 'orders/add_order.html'
     success_url = reverse_lazy('orders:index')
-    success_message = 'Приказ успешно добавлен!'
+    # success_message = 'Приказ успешно добавлен!'
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        # Вызываем родительский метод, но пока не возвращаем его
+        response = super().form_valid(form)
+
+        # Проверяем, это AJAX-запрос?
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Если да, возвращаем JSON об успехе
+            return JsonResponse({'success': True})
+        else:
+            # Если нет (обычная отправка), возвращаем редирект
+            return response
+
+    def form_invalid(self, form):
+        # Проверяем, это AJAX-запрос?
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Если да, возвращаем JSON с ошибками валидации
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        else:
+            # Если нет, рендерим страницу с формой и ошибками
+            return super().form_invalid(form)
 
 
 class OrderDetailView(DetailView):
     model = Order
     # Используем новый шаблон для деталей
-    template_name = 'orders/order_detail.html'
+    template_name = 'orders/includes/inc__modal_order_detail.html'
     context_object_name = 'order'
 
     # DetailView по умолчанию возвращает HTTP-ответ.
@@ -97,7 +118,7 @@ class OrderDetailView(DetailView):
 class OrderEditView(UpdateView):
     model = Order
     # Используем модифицированный шаблон для редактирования
-    template_name = 'orders/edit_order.html'
+    template_name = 'orders/includes/inc__modal_edit_order.html'
     form_class = OrderForm
     context_object_name = 'order'
 

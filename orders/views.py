@@ -38,9 +38,10 @@ class IndexView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(pk__isnull=False)
         search = self.request.GET.get("search")
-        filter_doc_num = self.request.GET.get("filter_doc_num")
         year = self.request.GET.get('year')
+        filter_doc_num = self.request.GET.get("filter_doc_num")
 
         if year:
             try:

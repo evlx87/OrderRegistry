@@ -38,6 +38,7 @@
                             {% endif %}
                         </th>
                         <td>
+                            {% if order.pk %}
                             <a href="#" class="link-primary text-decoration-none view-detail-btn"
                                data-bs-toggle="modal"
                                data-bs-target="#modalContainer"
@@ -45,22 +46,29 @@
                                title="Посмотреть полную карточку">
                                 <strong>{{ order.document_number }}</strong>
                             </a>
+                            {% else %}
+                                <strong>{{ order.document_number }}</strong>
+                            {% endif %}
                         </td>
                         <td>{{ order.issue_date|default_if_none:"---" }}</td>
                         <td>{{ order.document_title|truncatechars:100 }}</td>
                         <td>{{ order.signed_by|default_if_none:"---" }}</td>
                         <td>{{ order.responsible_executor|default_if_none:"---" }}</td>
                         <td class="text-nowrap">
+                            {% if order.pk %}
                             <a href="#" class="text-decoration-none me-2 edit-btn"
                                data-bs-toggle="modal"
                                data-bs-target="#modalContainer"
                                data-url="{% url 'orders:edit_order' order.pk %}"
                                title="Редактировать">
-
+                                <img src="{% static 'orders/img/edit_order.png' %}" alt="Редактировать" width="20">
                             </a>
                             <a href="{% url 'orders:delete_order' order.pk %}" class="text-decoration-none" title="Удалить">
-
+                                <img src="{% static 'orders/img/delete_order.png' %}" alt="Удалить" width="20">
                             </a>
+                            {% else %}
+                                <span>—</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
@@ -84,6 +92,9 @@
                 </div>
         </div>
     </div>
+
+    {% include 'orders/includes/inc__modal_add_order.html' %}
+    {% include 'registration/includes/inc__modal_login.html' %}
 
 {% endblock content %}
 
@@ -116,38 +127,36 @@
                     $.ajax({
                         type: 'POST',
                         url: url,
-                        data: form.serialize(), // Собираем данные формы
-                        headers: {'X-Requested-With': 'XMLHttpRequest'}, // Помечаем как AJAX
+                        data: form.serialize(),
+                        headers: {'X-Requested-With': 'XMLHttpRequest'},
 
                         success: function(response) {
                             if (response.success) {
-                                // Если все успешно:
-                                $('#addOrderModal').modal('hide'); // 1. Закрываем модалку
-                                location.reload(); // 2. Перезагружаем страницу (самый простой способ)
-                                // (В будущем можно заменить на JS-код,
-                                // который добавит новую строку в таблицу)
+                                $('#addOrderModal').modal('hide');
+                                location.reload();
+                            } else {
+                                modalContainer.find('.modal-content').load(url);
                             }
                         },
-                        error: function(xhr) {
+
+                        error: function(xhr, status, error) {
                             if (xhr.status === 400 && xhr.responseJSON) {
                                 var response = xhr.responseJSON;
                                 if (!response.success && response.errors) {
-                                    // Если сервер вернул ошибки валидации:
-                                    // Проходим по каждой ошибке
                                     $.each(response.errors, function(fieldName, errors) {
-                                        var field = $('#id_' + fieldName); // Находим поле по id
-                                        field.addClass('is-invalid'); // Добавляем класс ошибки
-                                        // Добавляем текст ошибки под полем
+                                        var field = $('#id_' + fieldName);
+                                        field.addClass('is-invalid');
                                         field.after('<div class="invalid-feedback">' + errors[0] + '</div>');
                                     });
                                 }
-                            } else {
-                                alert('Произошла неизвестная ошибка. Попробуйте снова.');
+                            }
+                            else {
+                                alert('Произошла неизвестная ошибка. Попробуйте снова. (Статус: ' + xhr.status + ')');
+                                console.error("AJAX Error:", status, error, xhr);
                             }
                         }
                     });
                 });
-
             });
         </script>
 {% endblock script %}

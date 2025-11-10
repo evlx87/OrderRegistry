@@ -17,7 +17,57 @@ from orders.models import Order
 
 
 # Create your views here.
-class IndexView(ListView):
+EXPORT_FIELD_MAP = {
+    'document_number': 'Номер документа',
+    'issue_date': 'Дата издания',
+    'document_title': 'Наименование документа',
+    'signed_by': 'Подписант',
+    'responsible_executor': 'Ответственный исполнитель',
+    'transferred_to_execution': 'Передан на исполнение',
+    'transferred_for_storage': 'Передан на хранение',
+    'heraldic_blank_number': 'Номер геральдического бланка',
+    'note': 'Примечание'
+}
+
+class OrderQuerysetMixin:
+    """
+    Этот Mixin содержит логику для фильтрации и поиска queryset'а.
+    Мы будем использовать его в IndexView и ExportToExcelView,
+    чтобы экспорт соответствовал тому, что видит пользователь.
+    """
+    def get_filtered_queryset(self, request):
+        queryset = Order.objects.all() # Начинаем с .all()
+        search = request.GET.get("search")
+        year = request.GET.get('year')
+        filter_doc_num = request.GET.get("filter_doc_num")
+
+        if year:
+            try:
+                year_int = int(year)
+                queryset = queryset.filter(issue_date__year=year_int)
+            except (ValueError, TypeError):
+                pass
+
+        if search:
+            query = SearchQuery(search, search_type='websearch')
+            vector = SearchVector('document_title')
+            queryset = queryset.annotate(
+                rank=SearchRank(vector, query)
+            ).filter(rank__gte=0.01).order_by('-rank', '-issue_date')
+        
+        if filter_doc_num:
+            queryset = queryset.filter(
+                document_number__icontains=filter_doc_num)
+        
+        # Если не было поиска, сортируем по ID. 
+        # Если был поиск, сортировка 'rank' уже применена.
+        if not search:
+            queryset = queryset.order_by('-id')
+
+        return queryset
+
+
+class IndexView(OrderQuerysetMixin, ListView):
     model = Order
     template_name = 'orders/index.html'
     context_object_name = 'orders'
@@ -37,41 +87,50 @@ class IndexView(ListView):
         return years_list
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.filter(pk__isnull=False)
-        search = self.request.GET.get("search")
-        year = self.request.GET.get('year')
-        filter_doc_num = self.request.GET.get("filter_doc_num")
+        # Всю логику переносим в Mixin
+        return self.get_filtered_queryset(self.request)
+        
+        # queryset = super().get_queryset()
+        # queryset = queryset.filter(pk__isnull=False)
+        # search = self.request.GET.get("search")
+        # year = self.request.GET.get('year')
+        # filter_doc_num = self.request.GET.get("filter_doc_num")
 
-        if year:
-            try:
-                year_int = int(year)
-                queryset = queryset.filter(issue_date__year=year_int)
-            except ValueError:
-                pass
+        # if year:
+        #     try:
+        #         year_int = int(year)
+        #         queryset = queryset.filter(issue_date__year=year_int)
+        #     except ValueError:
+        #         pass
 
-        if search:
-            query = SearchQuery(search, search_type='websearch')
-            vector = SearchVector('document_title')
-            queryset = queryset.annotate(
-                rank=SearchRank(vector, query)
-            ).filter(rank__gte=0.01).order_by('-rank', '-issue_date')
+        # if search:
+        #     query = SearchQuery(search, search_type='websearch')
+        #     vector = SearchVector('document_title')
+        #     queryset = queryset.annotate(
+        #         rank=SearchRank(vector, query)
+        #     ).filter(rank__gte=0.01).order_by('-rank', '-issue_date')
 
-        if filter_doc_num:
-            queryset = queryset.filter(
-                document_number__icontains=filter_doc_num)
+        # if filter_doc_num:
+        #     queryset = queryset.filter(
+        #         document_number__icontains=filter_doc_num)
 
-        return queryset.order_by('-id') if not search else queryset
+        # return queryset.order_by('-id') if not search else queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'Приказы'
+        # Получаем параметры фильтра для передачи в <input type="hidden">
         context["search"] = self.request.GET.get("search", "")
         context["filter_doc_num"] = self.request.GET.get("filter_doc_num", "")
-        context["years"] = self.get_year_choices()
         context["selected_year"] = self.request.GET.get("filter_year", date.today().year)
+
+        context["years"] = self.get_year_choices()
+
         context['order_form'] = OrderForm()
         context['login_form'] = AuthenticationForm()
+        # Добавляем карту полей в контекст для модального окна
+        context['export_field_map'] = EXPORT_FIELD_MAP
+
         return context
 
 
@@ -166,55 +225,61 @@ class DeleteOrderView(DeleteView):
             return HttpResponseRedirect(success_url)
 
 
-class ExportToExcelView(View):
+class ExportToExcelView(OrderQuerysetMixin, View): # <-- Добавляем Mixin
+
     def get(self, request, *args, **kwargs):
-        # 1. Определение полей для выборки и заголовков
-        field_names = [
-            'document_number', 'issue_date', 'document_title', 'signed_by',
-            'responsible_executor', 'transferred_to_execution',
-            'transferred_for_storage', 'heraldic_blank_number', 'note'
-        ]
+        
+        # 1. Получаем список выбранных полей из GET-параметров
+        selected_fields = request.GET.getlist('fields')
 
-        headers = [
-            'Номер документа', 'Дата издания', 'Наименование документа',
-            'Подписант', 'Ответственный исполнитель', 'Передан на исполнение',
-            'Передан на хранение', 'Номер геральдического бланка', 'Примечание'
-        ]
+        # 2. Валидация: если полей не выбрано или кто-то подделал запрос
+        if not selected_fields:
+            # (Здесь можно вернуть красивую страницу ошибки, но пока так)
+            return HttpResponse("Ошибка: не выбрано ни одного поля для экспорта.", status=400)
 
-        # 2. ОПТИМИЗИРОВАННЫЙ ЗАПРОС (Шаг 5)
-        # Получаем только необходимые значения, а не полные объекты модели
-        orders_data = Order.objects.order_by('-id').values_list(*field_names)
+        # 3. Фильтруем queryset, используя ту же логику, что и IndexView
+        # Mixin автоматически прочитает 'search', 'year' и т.д. из request.GET
+        queryset = self.get_filtered_queryset(request)
 
-        data = [headers]
+        # 4. Формируем заголовки и список полей для запроса
+        headers = []
+        valid_field_names = []
+        
+        # Используем .items() для сохранения порядка (в Python 3.7+)
+        for field_name, field_label in EXPORT_FIELD_MAP.items():
+            if field_name in selected_fields:
+                headers.append(field_label)
+                valid_field_names.append(field_name)
+        
+        # 5. Оптимизированный запрос к БД
+        # values_list() возьмет только те поля, которые выбрал пользователь
+        orders_data = queryset.values_list(*valid_field_names)
 
-        # 3. Обработка данных
-        for order_tuple in orders_data:
-            order_list = list(order_tuple)
-
-            # Индекс 1 соответствует issue_date
-            issue_date = order_list[1]
-
-            # ИСПРАВЛЕНИЕ БАГА: Проверка на None/Null (Шаг 2)
-            # Форматируем дату или оставляем пустую строку
-            if issue_date:
-                # issue_date - это объект datetime.date или datetime.datetime
-                order_list[1] = issue_date.strftime('%d.%m.%Y')
-            else:
-                order_list[1] = ''
-
-            data.append(order_list)
-
-        # 4. Создание файла Excel
+        # 6. Создание файла Excel
         workbook = openpyxl.Workbook()
         sheet = workbook.active
+        
+        # Добавляем динамические заголовки
+        sheet.append(headers)
 
-        for row in data:
+        # 7. Обработка данных
+        for order_tuple in orders_data:
+            row = list(order_tuple)
+            
+            # Ищем, есть ли в наших данных даты (объекты date)
+            for i, value in enumerate(row):
+                if isinstance(value, date):
+                    # Форматируем дату в привычный вид
+                    row[i] = value.strftime('%d.%m.%Y')
+                elif value is None:
+                    row[i] = '' # Заменяем None на пустые строки
+            
             sheet.append(row)
 
-        # 5. Подготовка ответа
+        # 8. Подготовка ответа
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=orders.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=orders_export.xlsx'
         workbook.save(response)
 
         return response

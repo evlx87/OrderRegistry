@@ -1,0 +1,15 @@
+<form method="post" action="{% url 'orders:delete_order' order.pk %}" id="deleteOrderForm" data-success-url="{% url 'orders:index' %}">
+    {% csrf_token %}
+    <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <p>Вы действительно хотите удалить приказ № <strong>{{ order.document_number }}</strong>?</p>
+        <p class="text-danger">Это действие нельзя будет отменить.</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет, отмена</button>
+        <button type="submit" class="btn btn-danger">Да, удалить</button>
+    </div>
+</form>

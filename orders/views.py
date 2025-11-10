@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
@@ -141,24 +141,29 @@ class OrderEditView(UpdateView):
 
 class DeleteOrderView(DeleteView):
     model = Order
-    template_name = 'orders/delete_order.html'
+    template_name = 'orders/includes/inc__modal_delete_order.html'
     success_url = reverse_lazy('orders:index')
     success_message = 'Приказ успешно удален.'
 
-    # def delete(self, request, *args, **kwargs):
-    #     obj = self.get_object_or_404(*args, **kwargs)
-    #     if obj:
-    #         obj.delete()
-    #         messages.success(self.request, 'Приказ удален.')
-    #     else:
-    #         messages.error(self.request, 'Приказ не найден.')
-    #     return redirect(self.success_url)
-    #
-    # def get_object_or_404(self, queryset, *args, **kwargs):
-    #     try:
-    #         return self.get_object(queryset, *args, **kwargs)
-    #     except Http404:
-    #         raise Http404('Object does not exist.')
+    # Этот метод будет обрабатывать GET-запрос (загрузку формы в модалку)
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return render(request, self.template_name, context)
+
+    # Этот метод будет обрабатывать POST-запрос (нажатие "Да, удалить")
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.delete()
+
+        # Проверяем, является ли запрос AJAX
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Отправляем JSON-ответ об успехе
+            return JsonResponse({'success': True, 'redirect_url': success_url})
+        else:
+            # Стандартное поведение, если AJAX не используется
+            return HttpResponseRedirect(success_url)
 
 
 class ExportToExcelView(View):

@@ -105,42 +105,67 @@
     </div>
 
     <div class="modal fade" id="exportOptionsModal" tabindex="-1" aria-labelledby="exportOptionsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <form action="{% url 'orders:export_to_excel' %}" method="GET" id="exportOptionsForm">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exportOptionsModalLabel">Настройка экспорта в Excel</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportOptionsModalLabel">Параметры экспорта в Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="{% url 'orders:export_to_excel' %}" method="get" id="exportForm">
+                <div class="modal-body">
+
+                    <h5 class="mb-3 text-primary">1. Фильтрация данных (необязательно)</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="export_doc_type" class="form-label">Вид документа</label>
+                            <select class="form-select" id="export_doc_type" name="doc_type">
+                                <option value="">--- Все ---</option>
+                                <option value="order">Приказ</option>
+                                <option value="decree">Распоряжение</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="export_year" class="form-label">Год</label>
+                            <select class="form-select" id="export_year" name="year">
+                                <option value="">--- Все ---</option>
+                                {% for year, label in years %}
+                                    <option value="{{ year }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        <p>Выберите поля, которые вы хотите включить в отчет:</p>
-                        
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3 text-primary">2. Выберите поля для включения в отчет:</h5>
+
+                    <div class="row row-cols-md-3 row-cols-2 g-2">
                         {% for field_name, field_label in export_field_map.items %}
-                        <div class="form-check">
-                            <input class="form-check-input" 
-                                type="checkbox" 
-                                name="fields" 
-                                value="{{ field_name }}" 
-                                id="field_{{ field_name }}" 
-                                checked> <label class="form-check-label" for="field_{{ field_name }}">
-                                {{ field_label }}
-                            </label>
+                        <div class="col">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       value="{{ field_name }}"
+                                       id="export_field_{{ field_name }}"
+                                       name="fields"
+                                       checked> <label class="form-check-label" for="export_field_{{ field_name }}">
+                                    {{ field_label }}
+                                </label>
+                            </div>
                         </div>
                         {% endfor %}
-                        
-                        <input type="hidden" name="search" value="{{ search }}">
-                        <input type="hidden" name="year" value="{{ selected_year|default:'' }}">
-                        <input type="hidden" name="filter_doc_num" value="{{ filter_doc_num }}">
-                        
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-primary">Экспорт</button>
-                    </div>
-                </form>
-            </div>
+                    <p class="text-muted small mt-3">Укажите, какие столбцы будут включены в итоговый Excel-файл. Если ни один не выбран, вы получите ошибку.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Экспортировать</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
     {% include 'orders/includes/inc__modal_add_order.html' %}
     {% include 'registration/includes/inc__modal_login.html' %}

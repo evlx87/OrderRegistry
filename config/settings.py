@@ -164,3 +164,69 @@ ORGANIZATION_NAME = os.environ.get(
     'ORGANIZATION_NAME',
     'Название организации не указано в .env' # Значение по умолчанию
 )
+
+# Настройки логирования
+# 1. Определение базовой директории для логов
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+# 2. Конфигурация LOGGING
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    # 1. Форматтеры
+    'formatters': {
+        'detailed': {
+            # Формат: УРОВЕНЬ ДАТА/ВРЕМЯ модуль.класс.метод [Пользователь] Сообщение
+            'format': '{levelname} {asctime} {name} {message}',
+            'style': '{',
+        },
+    },
+
+    # 2. Обработчики
+    'handlers': {
+        'daily_file': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            # Базовое имя файла, который будет содержать все текущие логи.
+            # Ротированные файлы будут выглядеть так: logs/orders_logs.log.2025-11-11
+            'filename': BASE_DIR / 'logs/orders_logs.log',
+            'when': 'midnight',  # Ротация происходит каждый день в полночь
+            'interval': 1,
+            'backupCount': 30,  # Хранить логи за 30 дней
+            'formatter': 'detailed',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'detailed'
+        },
+    },
+
+    # 3. Логгеры
+    'loggers': {
+        # Логгер для всего приложения (направляет все в 'daily_file')
+        'orders_app': {
+            'handlers': ['daily_file', 'console'],
+            'level': 'INFO',  # Логируем все, что выше INFO
+            'propagate': False,
+        },
+        # Логгер для отслеживания действий пользователя, который вы уже использовали
+        'user_actions_logger': {
+            'handlers': ['daily_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,  # Важно, чтобы логи не дублировались
+        },
+        # Логгер для Django (для HTTP-запросов и системных сообщений)
+        'django': {
+            'handlers': ['daily_file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        # Используем логгер 'orders' (или 'orders_app') для критических ошибок
+        'orders': {
+            'handlers': ['daily_file', 'console'],
+            'level': 'WARNING',  # Логируем только ошибки и предупреждения из логики приложения
+            'propagate': False,
+        },
+    }
+}

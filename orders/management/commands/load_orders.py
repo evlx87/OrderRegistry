@@ -183,10 +183,12 @@ class Command(BaseCommand):
                 # issue_date теперь гарантированно datetime.date или None
                 temp_order = Order(
                     issue_date=defaults.get('issue_date'),
-                    document_number=document_number
+                    document_number=document_number,
+                    doc_type=defaults.get('doc_type', Order.DOC_TYPE_ORDER)
                 )
 
                 # 3.2 Генерируем целевой путь к файлу в MEDIA_ROOT
+
                 target_filename = order_scan_upload_to(temp_order, os.path.basename(pdf_source_path))
                 target_full_path = os.path.join(settings.MEDIA_ROOT, target_filename)
 

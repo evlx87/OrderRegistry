@@ -19,7 +19,8 @@ def order_scan_upload_to(instance, filename):
         month = f"{localized_datetime.month:02}"
         day = f"{localized_datetime.day:02}"
 
-    filename = f"{instance.document_number}_{day}.{month}.{year}.pdf"
+    doc_type_prefix = getattr(instance, 'doc_type', 'doc')
+    filename = f"{doc_type_prefix}_{instance.document_number}_{day}.{month}.{year}.pdf"
 
     return os.path.join('orders_scan', str(year), str(month), filename)
 

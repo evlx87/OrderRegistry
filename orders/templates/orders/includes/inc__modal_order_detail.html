@@ -1,6 +1,9 @@
 <div class="modal-header">
     <h5 class="modal-title" id="orderDetailModalLabel">
-        Карточка документа №{{ order.document_number|default_if_none:"---" }}
+        Карточка документа: {{ order.get_doc_type_display }} №{{ order.document_number }}
+    {% if order.issue_date %}
+        от {{ order.issue_date|date:"d.m.Y" }}
+    {% endif %}
     </h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>

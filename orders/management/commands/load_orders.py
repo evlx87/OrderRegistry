@@ -188,7 +188,6 @@ class Command(BaseCommand):
                 )
 
                 # 3.2 Генерируем целевой путь к файлу в MEDIA_ROOT
-
                 target_filename = order_scan_upload_to(temp_order, os.path.basename(pdf_source_path))
                 target_full_path = os.path.join(settings.MEDIA_ROOT, target_filename)
 

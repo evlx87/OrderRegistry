@@ -38,7 +38,7 @@ class OrderQuerysetMixin:
     def get_filtered_queryset(self, request):
         queryset = Order.objects.all() # Начинаем с .all()
         search = request.GET.get("search")
-        year = request.GET.get('year')
+        year = request.GET.get('filter_year') or request.GET.get('year')
         filter_doc_num = request.GET.get("filter_doc_num")
 
         if year:

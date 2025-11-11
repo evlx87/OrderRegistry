@@ -8,12 +8,10 @@ from django.utils import timezone
 # Create your models here.
 def order_scan_upload_to(instance, filename):
     if not instance.issue_date:
-        # ... (оставьте старую логику для 'unknown_date', 'dd', 'mm')
         year = 'unknown_date'
         month = '00' # Добавляем заглушку для месяца
         day = 'dd'
     else:
-        # ... (оставьте старую логику для получения year, month, day)
         order_datetime = datetime.combine(instance.issue_date, datetime.min.time())
         aware_datetime = timezone.make_aware(order_datetime)
         localized_datetime = timezone.localtime(aware_datetime)
@@ -21,17 +19,12 @@ def order_scan_upload_to(instance, filename):
         month = f"{localized_datetime.month:02}"
         day = f"{localized_datetime.day:02}"
 
-    # Формируем имя файла
     filename = f"{instance.document_number}_{day}.{month}.{year}.pdf"
 
-    # ВОТ ИЗМЕНЕНИЕ: Включаем месяц в путь
     return os.path.join('orders_scan', str(year), str(month), filename)
 
 
 class Order(models.Model):
-    # --- НАЧАЛО ИЗМЕНЕНИЙ ---
-
-    # 1. Определяем варианты выбора
     DOC_TYPE_ORDER = 'order'
     DOC_TYPE_DECREE = 'decree'
 
@@ -40,8 +33,6 @@ class Order(models.Model):
         (DOC_TYPE_DECREE, 'Распоряжение'),
     ]
 
-    # 2. Добавляем новое поле 'Вид документа'
-    # Мы ставим его в начало для удобства
     doc_type = models.CharField(
         max_length=10,
         choices=DOC_TYPE_CHOICES,
@@ -50,7 +41,6 @@ class Order(models.Model):
         db_index=True  # Добавляем индекс, так как по нему точно будет фильтрация
     )
 
-    # --- КОНЕЦ ИЗМЕНЕНИЙ ---
     document_number = models.CharField(
         max_length=10,
         verbose_name='Номер документа',

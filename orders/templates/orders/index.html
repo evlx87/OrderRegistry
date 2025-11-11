@@ -19,11 +19,12 @@
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Номер документа</th>
+                        <th scope="col">Вид</th>
+                        <th scope="col">Номер</th>
                         <th scope="col">Дата издания</th>
                         <th scope="col">Название документа</th>
-                        <th scope="col">Кем подписан документ</th>
-                        <th scope="col">Ответственный исполнитель</th>
+                        <th scope="col">Подписант</th>
+                        <th scope="col">Исполнитель</th>
                         <th scope="col">Действия</th>
                     </tr>
                 </thead>
@@ -37,6 +38,7 @@
                                 {{ forloop.counter }}
                             {% endif %}
                         </th>
+                        <td>{{ order.get_doc_type_display }}</td>
                         <td>
                             {% if order.pk %}
                             <a href="#" class="link-primary text-decoration-none view-detail-btn"
@@ -50,7 +52,12 @@
                                 <strong>{{ order.document_number }}</strong>
                             {% endif %}
                         </td>
-                        <td>{{ order.issue_date|default_if_none:"---" }}</td>
+                        <td>{% if order.issue_date %}
+                                {{ order.issue_date|date:"d.m.Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
                         <td>{{ order.document_title|truncatechars:100 }}</td>
                         <td>{{ order.signed_by|default_if_none:"---" }}</td>
                         <td>{{ order.responsible_executor|default_if_none:"---" }}</td>

@@ -158,3 +158,9 @@ CACHES = {
         'LOCATION': 'orders_cache_table', # Имя таблицы для кеша
     }
 }
+
+# Настройки приложения
+ORGANIZATION_NAME = os.environ.get(
+    'ORGANIZATION_NAME',
+    'Название организации не указано в .env' # Значение по умолчанию
+)

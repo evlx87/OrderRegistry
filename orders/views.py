@@ -1,6 +1,7 @@
 from datetime import date
 
 import openpyxl
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
@@ -103,6 +104,7 @@ class IndexView(OrderQuerysetMixin, ListView):
         context['order_form'] = OrderForm()
         context['login_form'] = AuthenticationForm()
         context['export_field_map'] = EXPORT_FIELD_MAP
+        context['organization_name'] = settings.ORGANIZATION_NAME
 
         return context
 

@@ -1,7 +1,7 @@
 <div class="container my-4 p-3 border rounded shadow-sm">
     <form class="row g-3 align-items-end" action="" method="GET">
 
-        <div class="col-md-4 col-lg-4"> <label for="search_input" class="form-label visually-hidden">Поиск по названию</label>
+        <div class="col-md-3 col-lg-3"> <label for="search_input" class="form-label visually-hidden">Поиск по названию</label>
             <input class="form-control" type="text" id="search_input" name="search" value="{{ search }}" placeholder="Введите название документа...">
         </div>
 
@@ -9,7 +9,15 @@
             <input class="form-control" type="text" id="num_input" name="filter_doc_num" value="{{ filter_doc_num }}" placeholder="Точный номер документа...">
         </div>
 
-        <div class="col-md-2 col-lg-2"> <label for="filter_year" class="form-label">Выбрать год:</label>
+        <div class="col-md-2 col-lg-2">
+            <label for="filter_doc_type" class="form-label">Вид:</label>
+            <select class="form-select" id="filter_doc_type" name="filter_doc_type">
+                <option value="">--- Все ---</option>
+                <option value="order" {% if request.GET.filter_doc_type == 'order' %}selected{% endif %}>Приказ</option>
+                <option value="decree" {% if request.GET.filter_doc_type == 'decree' %}selected{% endif %}>Распоряжение</option>
+            </select>
+        </div>
+        <div class="col-md-2 col-lg-2"> <label for="filter_year" class="form-label">Год:</label>
             <select class="form-select" id="filter_year" name="filter_year">
                 <option value="">--- Все ---</option>
                 {% for year in years %}
@@ -18,13 +26,13 @@
             </select>
         </div>
 
-        <div class="col-md-3 col-lg-3"> <div class="d-flex w-100">
+        <div class="col-md-2 col-lg-2"> <div class="d-flex w-100">
                 <button type="submit" class="btn btn-primary flex-grow-1">Найти</button>
 
-                {% if request.GET.filter_year or request.GET.filter_doc_num or request.GET.search %}
+                {% if request.GET.filter_year or request.GET.filter_doc_num or request.GET.search or request.GET.filter_doc_type %}
                     <a href="{% url 'orders:index' %}" class="btn btn-outline-secondary ms-2">Сброс</a>
                 {% endif %}
-                </div>
+            </div>
         </div>
     </form>
 </div>

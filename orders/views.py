@@ -38,8 +38,10 @@ class OrderQuerysetMixin:
     def get_filtered_queryset(self, request):
         queryset = Order.objects.all() # Начинаем с .all()
         search = request.GET.get("search")
+        # Мы ищем 'filter_year' (с формы) или 'year' (с модального окна экспорта)
         year = request.GET.get('filter_year') or request.GET.get('year')
         filter_doc_num = request.GET.get("filter_doc_num")
+        filter_doc_type = request.GET.get("filter_doc_type")
 
         if year:
             try:
@@ -58,6 +60,9 @@ class OrderQuerysetMixin:
         if filter_doc_num:
             queryset = queryset.filter(
                 document_number__icontains=filter_doc_num)
+
+        if filter_doc_type:
+            queryset = queryset.filter(doc_type=filter_doc_type)
         
         # Если не было поиска, сортируем по ID. 
         # Если был поиск, сортировка 'rank' уже применена.

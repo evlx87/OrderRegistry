@@ -12,6 +12,8 @@ from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
 from django.views.generic import DetailView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
@@ -39,19 +41,38 @@ EXPORT_FIELD_MAP = {
 }
 
 
+@csrf_exempt
 def log_cancel_action(request):
     """Принимает AJAX-запрос, логирует отмену и возвращает пустой ответ."""
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # Получаем тип формы, из которой была отменена операция
-        form_type = request.GET.get('form_type', 'Неизвестная')
+
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        return JsonResponse({'status': 'not an ajax request'}, status=400)
+
+    user = request.user.username if request.user.is_authenticated else 'Anonymous'
+
+    # НОВАЯ ЛОГИКА: Сначала проверяем POST с данными формы
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', 'Неизвестная')
+        form_data = request.POST.get('form_data', 'Нет данных')
 
         action_logger.info(
-            f"ОТМЕНА: Пользователь '{request.user.username}' нажал 'Отмена' "
-            f"в модальном окне: {form_type}."
+            f"ОТМЕНА (POST): Пользователь '{user}' нажал 'Отмена' "
+            f"в модальном окне: {form_type}. "
+            f"Введенные данные: {form_data}"
         )
         return JsonResponse({'status': 'logged'})
 
-    return JsonResponse({'status': 'not logged'}, status=400)
+    # СТАРАЯ ЛОГИКА (оставлена для обратной совместимости, если JS не отправит
+    # POST)
+    if request.method == 'GET':
+        form_type = request.GET.get('form_type', 'Неизвестная')
+        action_logger.info(
+            f"ОТМЕНА (GET): Пользователь '{user}' нажал 'Отмена' "
+            f"в модальном окне: {form_type} (без данных)."
+        )
+        return JsonResponse({'status': 'logged'})
+
+    return JsonResponse({'status': 'not logged, invalid method'}, status=400)
 
 
 class OrderQuerysetMixin:
@@ -205,8 +226,11 @@ class AddOrderView(SuccessMessageMixin, CreateView):
             action_logger.info(
                 f"УСПЕХ: Приказ №{
                     self.object.document_number} (ID: {
-                    self.object.pk}) " f"успешно создан пользователем '{
-                    self.request.user.username}'.")
+                    self.object.pk}) "
+                f"успешно создан пользователем '{
+                    self.request.user.username}'. "
+                f"Данные: {form.cleaned_data}"  # <--- ДОБАВЛЕНО
+            )
 
             if self.request.headers.get(
                     'x-requested-with') == 'XMLHttpRequest':
@@ -237,7 +261,8 @@ class AddOrderView(SuccessMessageMixin, CreateView):
         errors = form.errors.as_data()
         action_logger.warning(
             f"ПРОВАЛ (Валидация): Пользователь '{self.request.user.username}' "
-            f"не смог создать приказ. Ошибки: {errors}"
+            f"не смог создать приказ. Ошибки: {errors}. "
+            f"Отправленные данные: {form.data}"  # <--- ДОБАВЛЕНО
         )
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse(
@@ -281,12 +306,8 @@ class OrderEditView(UpdateView):
             form.save()
             # --- ЛОГИРОВАНИЕ: Успешное обновление ---
             action_logger.info(
-                f"УСПЕХ: Приказ №{
-                    self.object.document_number} (ID: {
-                    self.object.pk}) "
-                f"успешно ОБНОВЛЕН пользователем '{
-                    self.request.user.username}'. "
-                # ДОБАВЛЕНО: запись данных формы
+                f"УСПЕХ: Приказ №{self.object.document_number} (ID: {self.object.pk}) "
+                f"успешно ОБНОВЛЕН пользователем '{self.request.user.username}'. "
                 f"Измененные данные: {submitted_data}"
             )
             # Предполагаем, что это AJAX-ответ после успешного сохранения
@@ -313,10 +334,13 @@ class OrderEditView(UpdateView):
         # --- ЛОГИРОВАНИЕ: Ошибка валидации ---
         errors = form.errors.as_data()
         action_logger.warning(
-            f"ПРОВАЛ (Валидация): Пользователь '{
-                self.request.user.username}' " f"не смог обновить приказ (ID: {
+            f"ПРОВАЛ (Валидация): Пользователь '{self.request.user.username}' "
+            f"не смог обновить приказ (ID: {
                 self.object.pk if hasattr(
-                    self, 'object') and self.object else 'N/A'}). Ошибки: {errors}")
+                    self, 'object') and self.object else 'N/A'}). "
+            f"Ошибки: {errors}. "
+            f"Отправленные данные: {form.data}"  # <--- ДОБАВЛЕНО
+        )
         return render(
             self.request,
             self.template_name,
@@ -471,3 +495,23 @@ class ExportToExcelView(OrderQuerysetMixin, View):
             return HttpResponse(
                 "Внутренняя ошибка сервера при экспорте.",
                 status=500)
+
+
+@require_GET
+def log_ui_click(request):
+    """
+    Принимает AJAX-запрос для логирования простых UI-действий,
+    например, открытия модальных окон.
+    """
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'not an ajax request'}, status=400)
+
+    user = request.user.username if request.user.is_authenticated else 'Anonymous'
+    action_type = request.GET.get('action_type', 'Неизвестное UI-действие')
+
+    # Используем тот же логгер, что и для других действий
+    action_logger.info(
+        f"UI ДЕЙСТВИЕ: Пользователь '{user}' "
+        f"выполнил: {action_type}."
+    )
+    return JsonResponse({'status': 'logged'})

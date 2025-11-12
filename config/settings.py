@@ -205,28 +205,28 @@ LOGGING = {
 
     # 3. Логгеры
     'loggers': {
-        # Логгер для всего приложения (направляет все в 'daily_file')
+        # Логгер для всего приложения
         'orders_app': {
-            'handlers': ['daily_file', 'console'],
-            'level': 'INFO',  # Логируем все, что выше INFO
+            'handlers': ['console'] if DEBUG else ['daily_file', 'console'],
+            'level': 'INFO',
             'propagate': False,
         },
-        # Логгер для отслеживания действий пользователя, который вы уже использовали
+        # Логгер для отслеживания действий пользователя
         'user_actions_logger': {
-            'handlers': ['daily_file', 'console'],
+            'handlers': ['console'] if DEBUG else ['daily_file', 'console'],
             'level': 'INFO',
-            'propagate': False,  # Важно, чтобы логи не дублировались
+            'propagate': False,
         },
-        # Логгер для Django (для HTTP-запросов и системных сообщений)
+        # Логгер для Django
         'django': {
-            'handlers': ['daily_file', 'console'],
+            'handlers': ['console'] if DEBUG else ['daily_file', 'console'],
             'level': 'INFO',
             'propagate': True,
-        },
-        # Используем логгер 'orders' (или 'orders_app') для критических ошибок
+         },
+        # Используем логгер 'orders' для критических ошибок
         'orders': {
-            'handlers': ['daily_file', 'console'],
-            'level': 'WARNING',  # Логируем только ошибки и предупреждения из логики приложения
+            'handlers': ['console'] if DEBUG else ['daily_file', 'console'],
+            'level': 'WARNING',
             'propagate': False,
         },
     }

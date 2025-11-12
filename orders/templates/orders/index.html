@@ -177,8 +177,34 @@
         <script>
             $(document).ready(function() {
                 var modalContainer = $('#modalContainer');
+                var isFormSubmitted = false;
 
-                // ВАШ СУЩЕСТВУЮЩИЙ КОД (для деталей и редактирования)
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                const csrftoken = getCookie('csrftoken');
+
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                            // Также добавляем заголовок, который ожидает вью [cite: 196]
+                            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                        }
+                    }
+                });
+
                 $('body').on('click', '[data-bs-toggle="modal"][data-bs-target="#modalContainer"]', function(e) {
                     e.preventDefault();
                     var url = $(this).data('url');
@@ -188,7 +214,7 @@
                 // =======================================================
                 // НОВЫЙ КОД (для отправки формы добавления заказа)
                 // =======================================================
-                $('#addOrderForm').on('submit', function(e) {
+                $('#addOrderForm').on('submit', function(e) { //
                     e.preventDefault(); // Останавливаем стандартную отправку
 
                     var form = $(this);
@@ -202,10 +228,11 @@
                         type: 'POST',
                         url: url,
                         data: form.serialize(),
-                        headers: {'X-Requested-With': 'XMLHttpRequest'},
+                        // headers: {'X-Requested-With': 'XMLHttpRequest'}, //
 
                         success: function(response) {
                             if (response.success) {
+                                isFormSubmitted = true;
                                 $('#addOrderModal').modal('hide');
                                 location.reload();
                             } else {
@@ -231,35 +258,103 @@
                         }
                     });
                 });
+
                 $('body').on('submit', '#deleteOrderForm', function(e) {
                     e.preventDefault(); // Останавливаем стандартную отправку
 
                     var form = $(this);
                     var url = form.attr('action');
-                    var redirectUrl = form.data('success-url'); // URL из data-атрибута
+                    var redirectUrl = form.data('success-url');
 
                     $.ajax({
                         type: 'POST',
                         url: url,
                         data: form.serialize(), // Отправляем данные формы (включая csrf_token)
-                        headers: {'X-Requested-With': 'XMLHttpRequest'}, // 
+                        // headers: {'X-Requested-With': 'XMLHttpRequest'}, //
 
                         success: function(response) {
                             if (response.success) {
-                                // Закрываем модалку
+                                isFormSubmitted = true;
                                 modalContainer.modal('hide');
-                                // Перезагружаем страницу, чтобы увидеть изменения
                                 location.href = redirectUrl;
                             } else {
                                 alert('Не удалось удалить приказ. (success: false)');
                             }
                         },
                         error: function(xhr, status, error) {
-                            // 
                             alert('Произошла ошибка при удалении. Попробуйте снова.');
                             console.error("AJAX Error:", status, error, xhr);
                         }
                     });
+                });
+                $('.modal').on('hidden.bs.modal', function (e) {
+                    // 1. Проверяем, была ли форма успешно отправлена
+                    // Если да, сбрасываем флаг и ничего не логируем
+                    if (isFormSubmitted) {
+                        isFormSubmitted = false;
+                        return;
+                    }
+
+                    // 2. Это была отмена. Находим форму внутри модального окна.
+                    var modal = $(this);
+                    var form = modal.find('form');
+
+                    // Для #modalContainer форма загружается динамически
+                    if (modal.attr('id') === 'modalContainer') {
+                        form = modal.find('.modal-content').find('form');
+                    }
+
+                    // Если в модальном окне нет формы, выходим
+                    if (form.length === 0) {
+                        return;
+                    }
+
+                    // 3. Определяем тип формы (по ID формы или ID модалки)
+                    // (e.g., "addOrderForm", "deleteOrderForm", "exportForm", или форма редактирования)
+                    var formType = form.attr('id');
+                    if (!formType) {
+                        formType = modal.attr('id'); // (e.g., "addOrderModal")
+                    }
+
+                    // 4. Сериализуем данные
+                    var formData = form.serialize();
+
+                    // 5. Отправляем лог асинхронно
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "orders:log_cancel" %}', // URL из orders/urls.py
+                        data: {
+                            form_type: formType || 'unknown_form',
+                            form_data: formData
+                            // csrftoken уже добавлен через $.ajaxSetup
+                        },
+                        success: function() {
+                            // (Опционально) Успешно залогировали отмену
+                        },
+                        error: function(xhr) {
+                            console.error('Не удалось залогировать отмену: ' + xhr.status);
+                        }
+                    });
+                });
+                $('body').on('click', '.log-click', function() {
+                    var actionText = $(this).data('log-action');
+
+                    if (actionText) {
+                        $.ajax({
+                            type: 'GET',
+                            url: '{% url "orders:log_ui_click" %}', // Наш новый URL
+                            data: {
+                                action_type: actionText
+                            },
+                            // Ответ не важен, просто "отправили и забыли"
+                            success: function() {
+                                /* console.log('Logged click: ' + actionText); */
+                            },
+                            error: function(xhr) {
+                                console.error('Не удалось залогировать клик: ' + xhr.status);
+                            }
+                        });
+                    }
                 });
             });
         </script>

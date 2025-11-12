@@ -1,10 +1,14 @@
 <div class="button_container">
     {% if user.is_authenticated %}
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exportOptionsModal">
+    <button type="button" class="btn btn-success log-click"
+            data-bs-toggle="modal" data-bs-target="#exportOptionsModal"
+            data-log-action="Открытие модального окна 'Экспорт в Excel'">
         Экспорт в Excel
     </button>
 
-    <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#addOrderModal">
+    <button type="button" class="btn btn-success me-2 log-click"
+            data-bs-toggle="modal" data-bs-target="#addOrderModal"
+            data-log-action="Открытие модального окна 'Добавить'">
         Добавить
     </button>
 

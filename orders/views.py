@@ -39,6 +39,21 @@ EXPORT_FIELD_MAP = {
 }
 
 
+def log_cancel_action(request):
+    """Принимает AJAX-запрос, логирует отмену и возвращает пустой ответ."""
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Получаем тип формы, из которой была отменена операция
+        form_type = request.GET.get('form_type', 'Неизвестная')
+
+        action_logger.info(
+            f"ОТМЕНА: Пользователь '{request.user.username}' нажал 'Отмена' "
+            f"в модальном окне: {form_type}."
+        )
+        return JsonResponse({'status': 'logged'})
+
+    return JsonResponse({'status': 'not logged'}, status=400)
+
+
 class OrderQuerysetMixin:
     """
     Этот Mixin содержит логику для фильтрации и поиска queryset'а.

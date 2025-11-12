@@ -195,6 +195,7 @@ LOGGING = {
             'interval': 1,
             'backupCount': 30,  # Хранить логи за 30 дней
             'formatter': 'detailed',
+            'encoding': 'utf-8',
         },
         'console': {
             'class': 'logging.StreamHandler',
